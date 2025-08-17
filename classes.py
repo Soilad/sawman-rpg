@@ -2,12 +2,14 @@ import pygame
 from os import getcwd
 from datetime import datetime
 from pygame.image import save
+from pygame.math import lerp
 import pytz
+from functools import reduce
 from func import (
     lognt,
     coler,
     bar,
-    lerp,
+    scroll,
     clip,
     enemclip,
     putlines,
@@ -49,6 +51,7 @@ fontmin = pygame.font.Font(f"{cwd}/ui/Soilad.otf", 24)
 
 
 class Chara:
+    collision = False
     zhealth = shealth = 100
     frame = money = dir = dindex = rindex = 0
     scale = 1
@@ -83,7 +86,7 @@ class Chara:
             self.shealth,
         ) = a
 
-    def move(self, room, keys, tick, wall, entertime):
+    def move(self, room, keys, tick, wall, entertime, ysort):
         speed = 12 << keys[pygame.K_LSHIFT]
         if debug_mode:
             self.dindex += keys[pygame.K_LCTRL]
@@ -119,6 +122,23 @@ class Chara:
                 max(0, min(1180, self.x + (self.dx * speed * self.scale))),
                 max(0, min(481, self.y + (self.dy * speed * self.scale))),
             )
+
+            # pygame.draw.circle(screen, (255, 0, 0), (self.xf + 50, self.yf + 239), 10)
+            # for i in ysort:
+            #     pygame.draw.rect(
+            #         screen, (0, 0, 0), i.sprite.get_rect(topleft=(i.x, i.y))
+            #     )
+            in_object = reduce(
+                lambda x, y: x or y,
+                [
+                    rect.sprite.get_rect(topleft=(rect.x, rect.y)).collidepoint(
+                        (self.xf + 50, self.yf + 239)
+                    )
+                    and rect.collision
+                    for rect in ysort
+                ],
+            )
+            # print(in_object)
             if sawman.mask.overlap(wall, (-self.xf, -self.yf - 188)):
                 for adj in (
                     (1, 1),
@@ -149,21 +169,24 @@ class Chara:
                         )
 
             else:
-                self.x, self.y = self.xf, self.yf
+                if not in_object:
+                    self.x, self.y = self.xf, self.yf
             # if sawman.mask.overlap(wall, (-self.x, -self.y - 188)):
             #     self.x = (self.x + int(datetime_ist.strftime("%I%M")[:1:])) % 1280
             #     self.y = (self.y + int(datetime_ist.strftime("%I%M")[:1:-1])) % 720
         else:
             self.frame = 0
         self.scale = self.y / 360 if room.outside else 1
-        self.sprite1 = pygame.transform.scale(
+        self.sprite = pygame.transform.scale(
             clip(self.spritesheet1, 100 * self.frame, 239 * self.dir),
             (100 * self.scale, 239 * self.scale),
         )
-        screen.blit(self.sprite1, (self.x, self.y + (239 - 239 * self.scale)))
+        screen.blit(self.sprite, (self.x, self.y + (239 - 239 * self.scale)))
 
 
 class Zweistein:
+    collision = False
+
     def __init__(self, xy, sprite):
         self.spritesheet2 = pygame.image.load(sprite).convert_alpha()
         self.poss = [xy]
@@ -175,18 +198,18 @@ class Zweistein:
     def load(self, a):
         self.poss, self.x, self.y = a
 
-    def move(self, room, keys, tick, wall, entertime):
+    def move(self, room, keys, tick, wall, entertime, ysort):
         if self.poss[-1] != (sawman.x, sawman.y):
             self.poss.append((sawman.x, sawman.y))
             if len(self.poss) > 16:
                 self.poss = self.poss[1::]
         self.x, self.y = self.poss[0]
         self.scale = self.y / 360 if room.outside else 1
-        self.sprite2 = pygame.transform.scale(
+        self.sprite = pygame.transform.scale(
             clip(self.spritesheet2, 100 * sawman.frame, 239 * sawman.dir),
             (100 * self.scale, 239 * self.scale),
         )
-        screen.blit(self.sprite2, (self.x, self.y + (239 - 239 * self.scale)))
+        screen.blit(self.sprite, (self.x, self.y + (239 - 239 * self.scale)))
 
 
 class Inventory:
@@ -203,14 +226,10 @@ class Inventory:
     def __init__(self, item):
         self.invbox = item
         self.invnames = [x[0] for x in self.invbox]
-        self.renderbox = [
-            glow(
-                fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255)),
-                7,
-                (255, 255, 255),
-            )
-            for k, v in self.invbox.copy().items()
-        ]
+        self.renderbox = {
+            k: fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255))
+            for k, v in self.invbox.items()
+        }
 
     def save(self):
         return self.invbox, self.zhands, self.shands
@@ -219,14 +238,11 @@ class Inventory:
         self.invbox, self.zhands, self.shands = a
 
     def update(self):
-        self.renderbox = [
-            glow(
-                fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255)),
-                7,
-                (255, 255, 255),
-            )
-            for k, v in self.invbox.copy().items()
-        ]
+        self.renderbox = {
+            k: fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255))
+            for k, v in self.invbox.items()
+        }
+        print(self.invbox)
 
     def open(self, sawman, mscroll, tick):
         self.ymov = round(
@@ -252,12 +268,20 @@ class Inventory:
             )
             if self.zhands:
                 screen.blit(
-                    fontmin.render(self.zhands[0], fontaliased, (255, 0, 127)),
+                    glow(
+                        fontmin.render(self.zhands[0], fontaliased, (255, 0, 127)),
+                        5,
+                        (255, 0, 127),
+                    ),
                     (100, 625 + self.ymov),
                 )
             if self.shands:
                 screen.blit(
-                    fontmin.render(self.shands[0], fontaliased, (255, 127, 0)),
+                    glow(
+                        fontmin.render(self.shands[0], fontaliased, (255, 127, 0)),
+                        5,
+                        (255, 127, 0),
+                    ),
                     (100, 215 + self.ymov),
                 )
             screen.blit(
@@ -274,7 +298,10 @@ class Inventory:
             for k, v in list(self.invbox.copy().items())[
                 mscroll : min(len(self.invbox.copy()), 11 + mscroll)
             ]:
-                itemtext = fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255))
+                if k in self.renderbox:
+                    itemtext = self.renderbox[k]
+                else:
+                    continue
 
                 if (
                     itemtext.get_rect(topleft=(420, 75 + (50 * itemdex))).collidepoint(
@@ -313,6 +340,7 @@ class Inventory:
                                     else:
                                         self.invbox[k] -= 1
                                     self.zhands = k
+                                    self.update()
                                 if k[1] > 0:
                                     if self.shands:
                                         self.invbox[self.shands] = (
@@ -320,11 +348,12 @@ class Inventory:
                                             if self.shands not in self.invbox
                                             else self.invbox[self.shands] + 1
                                         )
-                                    self.shands = k
                                     if self.invbox[k] == 1:
                                         del self.invbox[k]
                                     else:
                                         self.invbox[k] -= 1
+                                    self.shands = k
+                                    self.update()
                                 sawman.mtogg = False
                         case 1, _, _:
                             if len(self.tubes) < 2:
@@ -384,6 +413,7 @@ class Inventory:
                                         self.result = self.result[1::]
                                     sawman.mtogg = False
                                     self.tubes = []
+                                    self.update()
                             else:
                                 self.tubes = []
                     itemtext = glow(
@@ -421,13 +451,23 @@ class Inventory:
 
 
 class Obj:
-    def __init__(self, sprite, loc, items, dialogs):
+    def __init__(self, sprite, loc, items, dialogs, collision=True):
         self.x, self.y = loc
+        self.collision = collision
         self.sprite = shadow(pygame.image.load(sprite).convert_alpha(), 5, (0, 0, 0))
         self.dialogs = dialogs
         self.dialog = dialogs[0]
         self.dialen = len(self.dialog)
-        self.diarender = [putlines(x[1]) for x in self.dialog]
+        self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+        for i in self.diarender:
+            idex = self.diarender.index(i)
+            for j in i:
+                jdex = i.index(j)
+                self.diarender[idex][jdex] = [
+                    fontmed.render(k, fontaliased, (255, 255, 255))
+                    for k in self.diarender[idex][jdex].split("\n")
+                ]
+        # print(self.diarender)
         self.items = [*items, 0]
         self.rect = pygame.Rect((self.x, self.y), self.sprite.get_size())
 
@@ -441,9 +481,17 @@ class Obj:
     def load(self, a):
         self.dialog, self.items, _ = a
         self.dialen = len(self.dialog)
-        self.diarender = [putlines(x[1]) for x in self.dialog]
+        self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+        for i in self.diarender:
+            idex = self.diarender.index(i)
+            for j in i:
+                jdex = i.index(j)
+                self.diarender[idex][jdex] = [
+                    fontmed.render(k, fontaliased, (255, 255, 255))
+                    for k in self.diarender[idex][jdex].split("\n")
+                ]
 
-    def move(self, room, keys, tick, wall, entertime):
+    def move(self, room, keys, tick, wall, entertime, ysort):
         screen.blit(self.sprite, (self.x, self.y))
 
     def textbox(self, sawman, inventory, i, ymov):
@@ -460,7 +508,17 @@ class Obj:
                 )
                 self.dialog = self.dialogs[0]
                 self.dialen = len(self.dialog)
-                self.diarender = [putlines(x[1]) for x in self.dialog]
+                self.diarender = [
+                    scroll(x) for x in [putlines(x[1]) for x in self.dialog]
+                ]
+                for i in self.diarender:
+                    idex = self.diarender.index(i)
+                    for j in i:
+                        jdex = i.index(j)
+                        self.diarender[idex][jdex] = [
+                            fontmed.render(k, fontaliased, (255, 255, 255))
+                            for k in self.diarender[idex][jdex].split("\n")
+                        ]
                 if self.items[0]:
                     inventory.invbox = adddict(inventory.invbox, self.items[0])
                 self.items = self.items[1::] if len(self.items) > 1 else self.items
@@ -479,35 +537,54 @@ class Obj:
             if "cutscene" in sawman.group.keys():
                 music.pause()
             screen.blit(box, (0, 480 + ymov))
-            if self.diarender[sawman.dindex - 1].count("\n"):
-                for line in self.diarender[sawman.dindex - 1][:i:].split("\n"):
-                    screen.blit(
-                        fontmed.render(str(line), fontaliased, (255, 255, 255)),
-                        (
-                            250,
-                            500
-                            + ymov
-                            + (
-                                50
-                                * self.diarender[sawman.dindex - 1][:i:]
-                                .split("\n")
-                                .index(line)
-                            ),
-                        ),
-                    )
-            else:
-                line = self.diarender[sawman.dindex - 1][:i:]
+            if self.dialog[sawman.dindex - 1][0]:
+                match self.dialog[sawman.dindex - 1][0][0]:
+                    case "sawman":
+                        x_offset = 200
+                    case "zweistein":
+                        x_offset = 850
+                    case _:
+                        x_offset = 625
+                text = fontmed.render(
+                    self.dialog[sawman.dindex - 1][0][0].capitalize(),
+                    False,
+                    (255, 255, 255),
+                )
+                pygame.draw.rect(
+                    screen,
+                    (0, 0, 0, 127),
+                    pygame.Rect(
+                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                    ),
+                    border_radius=50,
+                )
+                pygame.draw.rect(
+                    screen,
+                    (255, 0, 0),
+                    pygame.Rect(
+                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                    ),
+                    border_radius=50,
+                    width=5,
+                )
                 screen.blit(
-                    fontmed.render(str(line), fontaliased, (255, 255, 255)),
+                    text,
+                    (x_offset, 440 + ymov),
+                )
+            for line in self.diarender[sawman.dindex - 1][
+                min(i, len(self.diarender[sawman.dindex - 1]) - 1)
+            ]:
+                screen.blit(
+                    line,
                     (
                         250,
                         500
                         + ymov
                         + (
                             50
-                            * self.diarender[sawman.dindex - 1][:i:]
-                            .split("\n")
-                            .index(line)
+                            * self.diarender[sawman.dindex - 1][
+                                min(i, len(self.diarender[sawman.dindex - 1]) - 1)
+                            ].index(line)
                         ),
                     ),
                 )
@@ -515,6 +592,7 @@ class Obj:
 
 class Chaser:
     t = 0
+    collision = False
 
     def __init__(self, sprite, pos, speed, shock, enemies):
         self.x, self.y = self.xi, self.yi = pos
@@ -536,7 +614,7 @@ class Chaser:
     def load(self, a):
         self.enemies, _, _ = a
 
-    def move(self, room, keys, tick, wall, entertime):
+    def move(self, room, keys, tick, wall, entertime, ysort):
         scale = self.y / 360 if room.outside else 1
         if self.enemies:
             if tick - entertime > self.shock * 6:
@@ -1003,7 +1081,15 @@ class Room:
         self.portals = portals
         self.dialog = dialog
         self.dialen = len(self.dialog)
-        self.diarender = [putlines(x[1]) for x in self.dialog]
+        self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+        for i in self.diarender:
+            idex = self.diarender.index(i)
+            for j in i:
+                jdex = i.index(j)
+                self.diarender[idex][jdex] = [
+                    fontmed.render(k, fontaliased, (255, 255, 255))
+                    for k in self.diarender[idex][jdex].split("\n")
+                ]
 
     def save(self):
         return (
@@ -1019,7 +1105,15 @@ class Room:
         self.dialog = cutscene
         if self.dialog:
             self.dialen = len(self.dialog)
-            self.diarender = [putlines(x[1]) for x in self.dialog]
+            self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+            for i in self.diarender:
+                idex = self.diarender.index(i)
+                for j in i:
+                    jdex = i.index(j)
+                    self.diarender[idex][jdex] = [
+                        fontmed.render(k, fontaliased, (255, 255, 255))
+                        for k in self.diarender[idex][jdex].split("\n")
+                    ]
 
     def render(self):
         screen.blit(self.floor, (0, 0))
@@ -1041,19 +1135,54 @@ class Room:
                     (0, 0 + ymov),
                 )
             screen.blit(box, (0, 480 + ymov))
-
-            for line in self.diarender[sawman.dindex - 1][:i:].split("\n"):
+            if self.dialog[sawman.dindex - 1][0]:
+                match self.dialog[sawman.dindex - 1][0][0]:
+                    case "sawman":
+                        x_offset = 200
+                    case "zweistein":
+                        x_offset = 850
+                    case _:
+                        x_offset = 625
+                text = fontmed.render(
+                    self.dialog[sawman.dindex - 1][0][0].capitalize(),
+                    False,
+                    (255, 255, 255),
+                )
+                pygame.draw.rect(
+                    screen,
+                    (0, 0, 0, 127),
+                    pygame.Rect(
+                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                    ),
+                    border_radius=50,
+                )
+                pygame.draw.rect(
+                    screen,
+                    (255, 0, 0),
+                    pygame.Rect(
+                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                    ),
+                    border_radius=50,
+                    width=5,
+                )
                 screen.blit(
-                    fontmed.render(str(line), fontaliased, (255, 255, 255)),
+                    text,
+                    (x_offset, 440 + ymov),
+                )
+            for line in self.diarender[sawman.dindex - 1][
+                min(i, len(self.diarender[sawman.dindex - 1]) - 1)
+            ]:
+                screen.blit(
+                    line,
                     (
                         250,
                         500
                         + ymov
                         + (
                             50
-                            * self.diarender[sawman.dindex - 1][:i:]
-                            .split("\n")
-                            .index(line)
+                            * self.diarender[sawman.dindex - 1][
+                                min(i, len(self.diarender[sawman.dindex - 1]) - 1)
+                            ].index(line)
                         ),
                     ),
                 )
@@ -1074,6 +1203,7 @@ class Portal:
 
 
 class Trader:
+    collision = True
     diarender = ("", "")
 
     def __init__(self, sprite, loc, shopman, menu):
@@ -1139,7 +1269,7 @@ class Trader:
     def save(a):
         pass
 
-    def move(self, room, keys, tick, wall, entertime):
+    def move(self, room, keys, tick, wall, entertime, ysort):
         screen.blit(self.sprite, (self.x, self.y))
 
 

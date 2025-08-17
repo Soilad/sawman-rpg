@@ -1,5 +1,6 @@
 import pygame
-from func import lerp, pullup, _apply_glow, _add_glitch_effect, _apply_flicker
+from func import pullup, _apply_glow, _add_glitch_effect, _apply_flicker
+from pygame.math import lerp
 from PygameShader.shader import chromatic
 from classes import (
     sawman,
@@ -218,7 +219,7 @@ while run:
         if not battle.enemies:
             room.render()
             for item in ysort:
-                item.move(room, keys, tick, wall, entertime)
+                item.move(room, keys, tick, wall, entertime, ysort)
             if room.inters:
                 for inter in room.inters:
                     # pygame.draw.rect(screen, (255,0,0),inter.rect)
@@ -294,6 +295,7 @@ while run:
                             sawman.dindex += 1
                             tbstart = tick
                         case pygame.K_TAB | pygame.K_c:
+                            inventory.update()
                             inventory.tubes = []
                             inventory.tubetext1 = inventory.tubetext2 = fontmin.render(
                                 "", fontaliased, (225, 0, 0)
@@ -308,15 +310,16 @@ while run:
                 case pygame.KEYDOWN:
                     match event.key:
                         case pygame.K_F5:
-                            laterdays = tick
-                            with open(f"{cwd}/save.txt", "w") as save:
-                                save.write(str([level.save() for level in levels]))
-                            with open(f"{cwd}/saveinventory.txt", "w") as save:
-                                save.write(str(inventory.save()))
-                            with open(f"{cwd}/sawloc.txt", "w") as save:
-                                save.write(str(sawman.save()))
-                            with open(f"{cwd}/zweiloc.txt", "w") as save:
-                                save.write(str(zwei.save()))
+                            if not battle.enemies:
+                                laterdays = tick
+                                with open(f"{cwd}/save.txt", "w") as save:
+                                    save.write(str([level.save() for level in levels]))
+                                with open(f"{cwd}/saveinventory.txt", "w") as save:
+                                    save.write(str(inventory.save()))
+                                with open(f"{cwd}/sawloc.txt", "w") as save:
+                                    save.write(str(sawman.save()))
+                                with open(f"{cwd}/zweiloc.txt", "w") as save:
+                                    save.write(str(zwei.save()))
                         case pygame.K_s | pygame.K_DOWN:
                             battle.oindex = (battle.oindex + 1) % 4
                         case pygame.K_w | pygame.K_UP:
@@ -345,6 +348,10 @@ while run:
                 if pygame.mouse.get_pressed() == (1, 0, 0):
                     portaldimensions.append(pygame.mouse.get_pos())
                     print("npc stuff", portaldimensions[1], portaldimensions[-1])
+                    pos = (
+                        min(portaldimensions[1][0], portaldimensions[-1][0]),
+                        min(portaldimensions[1][1], portaldimensions[-1][1]),
+                    )
                     pw = abs(portaldimensions[-1][0] - portaldimensions[1][0])
                     ph = abs(portaldimensions[-1][1] - portaldimensions[1][1])
                     print(
@@ -360,10 +367,8 @@ while run:
                     )
                     pygame.draw.rect(
                         screen,
-                        (255, 0, 0, 127),
-                        pygame.Rect(
-                            portaldimensions[1][0], portaldimensions[1][1], pw, ph
-                        ),
+                        (255, 0, 0),
+                        pygame.Rect(pos, (pw, ph)),
                     )
                 else:
                     portaldimensions = [(0, 0)]

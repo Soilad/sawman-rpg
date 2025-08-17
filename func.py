@@ -10,6 +10,13 @@ from pygame import (
 import random
 
 
+def scroll(s):
+    l = []
+    for i in range(len(s) + 1):
+        l.append(s[:i:])
+    return l
+
+
 def glow(surface, thicc, color):
     opacity = 255
     if isinstance(thicc, float):
@@ -20,11 +27,11 @@ def glow(surface, thicc, color):
         flags=SRCALPHA,
     )
     a = b.copy()
-    b.blit(surface, (0, 0))
+    b.blit(surface)
     transform.gaussian_blur(b, thicc, dest_surface=a)
     a.fill(color, special_flags=BLEND_RGBA_MIN)
     a.set_alpha(opacity)
-    a.blit(surface, (0, 0), special_flags=BLEND_RGBA_ADD)
+    a.blit(surface)
     return a
 
 
