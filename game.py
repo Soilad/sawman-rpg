@@ -1,6 +1,6 @@
 import pygame
 from func import pullup, _apply_glow, _add_glitch_effect, _apply_flicker
-from pygame.math import lerp
+from pygame.math import clamp, lerp
 from PygameShader.shader import chromatic
 from classes import (
     sawman,
@@ -120,7 +120,6 @@ while run:
                 tab = 0
             case "Continue Game":
                 game = True
-                print(1)
                 try:
                     with open(f"{cwd}/save.txt", "r") as save:
                         savedata = save.read()
@@ -207,7 +206,15 @@ while run:
     entertime = tick
     if tick - entertime < 10:
         pullup(fontaliased, fontmin, screen, bgm, tick - entertime)
-    room.render()
+    camera_x = camera_y = 0
+    room.render(camera_x, camera_y)
+    if room.h != 720:
+        if sawman.dx or sawman.dy:
+            camera_x = camera_x - (sawman.xf - 640)
+            camera_y = camera_y - (sawman.yf - 360)
+        else:
+            camera_x = camera_y = 0
+
     ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.y)
     pygame.display.update()
 
@@ -217,12 +224,22 @@ while run:
         if not run:
             break
         if not battle.enemies:
-            room.render()
+            room.render(camera_x, camera_y)
+            if room.h != 720:
+                if sawman.dx or sawman.dy:
+                    camera_x = clamp(-(sawman.xf - 640), room.w / -2, room.w / 2)
+                    camera_y = clamp(-(sawman.yf - 360), room.h / -2, room.h / 2)
+            else:
+                camera_x = camera_y = 0
+
             for item in ysort:
-                item.move(room, keys, tick, wall, entertime, ysort)
+                item.move(
+                    room, keys, tick, wall, entertime, ysort, (camera_x, camera_y)
+                )
             if room.inters:
                 for inter in room.inters:
                     # pygame.draw.rect(screen, (255,0,0),inter.rect)
+
                     ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.y)
                     if pygame.Rect.collidepoint(
                         inter.rect, (sawman.xf + 50, sawman.yf)
