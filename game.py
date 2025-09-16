@@ -32,7 +32,6 @@ current_menu = Menu.MAIN_MENU
 
 with open("settings.json") as json_data:
     settings_json = load(json_data)
-    scrollinvert = settings_json["Scroll Invert"]
 
 
 portaldimensions = [(0, 0)]
@@ -72,8 +71,9 @@ run = True
 menubg = pygame.image.load(f"{cwd}/ui/bg{nighttime.strftime('%p').lower()}.png")
 tab = [1]
 
-tick = mscroll = 0
-mtogg = False
+tick = 0
+mscroll = bscroll = 0
+mtogg = btogg = False
 
 menubuttons = [
     Button("Start Game", (200, 200), (160, 40), 5),
@@ -129,25 +129,29 @@ music.set_volume(mvol)
 
 
 while run:
-    if (current_menu == Menu.MAIN_MENU) or (current_menu == Menu.MAIN_MENU):
+    if (current_menu == Menu.MAIN_MENU) or (current_menu == Menu.SETTINGS):
         screen.blit(menubg, (0, 0))
     mpos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
+    btogg = False
+
     for event in pygame.event.get():
         match event.type:
             case pygame.QUIT:
                 run = False
-            case pygame.MOUSEBUTTONDOWN:
-                mscroll = 0
-                mtogg = True
-            case pygame.MOUSEBUTTONUP:
-                mscroll = 0
-                mtogg = False
             case pygame.MOUSEWHEEL:
+                bscroll = settings_json["Scroll Invert"] * event.y
                 mscroll = min(
                     max(mscroll - scrollinvert * event.y, 0),
                     len(inventory.invbox.copy()) - 1,
                 )
+                btogg = True
+            case pygame.MOUSEBUTTONDOWN:
+                mscroll = 0
+                btogg = True
+            case pygame.MOUSEBUTTONUP:
+                mscroll = 0
+                btogg = False
                 mtogg = True
             case pygame.KEYUP:
                 keydown = False
@@ -157,6 +161,9 @@ while run:
                         tbstart = tick
                     case pygame.K_TAB | pygame.K_c:
                         inventory.update()
+                        inventory.tubes = []
+                        pygame.mouse.set_visible(not pygame.mouse.get_visible())
+                        inventory.invshow = not inventory.invshow
                         music.set_volume(mvol / (1 + inventory.invshow))
                         inventory.a = tick
 
@@ -196,8 +203,8 @@ while run:
     match current_menu:
         case Menu.MAIN_MENU:
             for i in menubuttons:
-                if i.draw(screen, mpos, mtogg, tab, settings_json):
-                    tab = i.draw(screen, mpos, mtogg, tab, settings_json)
+                if i.draw(screen, mpos, btogg, tab, settings_json):
+                    tab = i.draw(screen, mpos, btogg, tab, settings_json)
 
             match tab:
                 case "Start Game":
@@ -242,29 +249,40 @@ while run:
             tab = 0
         case Menu.SETTINGS:
             for i in settingsbuttons:
-                tab = i.draw(screen, mpos, mtogg, tab, settings_json)
+                if i.draw(screen, mpos, btogg, tab, settings_json):
+                    tab = i.draw(screen, mpos, btogg, tab, settings_json)
             match tab:
-                case "Exit":
-                    current_menu = Menu.MAIN_MENU
-                case "UI Size":
-                    settings_json["UI Size"] = max(
-                        min(settings_json["UI Size"] + mscroll, 40), 14
-                    )
                 case "Scroll Invert":
-                    settings_json["Scroll Invert"] = (
-                        max(min(settings_json["Scroll Invert"] + mscroll, 1), 0) * -2
-                        + 1
+                    settings_json["Scroll Invert"] *= -1
+                case "UI Size":
+                    settings_json["UI Size"] += bscroll * (
+                        1 + 9 * keys[pygame.K_LSHIFT]
                     )
+                    settings_json["UI Size"] = clamp(settings_json["UI Size"], 14, 40)
                 case "Sound Volume":
-                    settings_json["Sound Volume"] = max(
-                        min(settings_json["Sound Volume"] + mscroll, 100), 0
+                    settings_json["Sound Volume"] += bscroll * (
+                        1 + 9 * keys[pygame.K_LSHIFT]
+                    )
+                    settings_json["Sound Volume"] = clamp(
+                        settings_json["Sound Volume"], 0, 100
                     )
                 case "Music Volume":
-                    settings_json["Music Volume"] = max(
-                        min(settings_json["Music Volume"] + mscroll, 100), 0
+                    settings_json["Music Volume"] += bscroll * (
+                        1 + 9 * keys[pygame.K_LSHIFT]
                     )
+                    settings_json["Music Volume"] = clamp(
+                        settings_json["Music Volume"], 0, 100
+                    )
+
+                    pygame.mixer.music.set_volume(settings_json["Music Volume"] / 100)
+
                 case "FPS":
-                    settings_json["FPS"] = max(settings_json["FPS"] + mscroll, 12)
+                    settings_json["FPS"] += bscroll * (1 + 9 * keys[pygame.K_LSHIFT])
+                    settings_json["FPS"] = clamp(settings_json["FPS"], 12, 999)
+
+                case "Exit":
+                    current_menu = Menu.MAIN_MENU
+
             with open("settings.json", "w") as json_data:
                 dump(settings_json, json_data)
 

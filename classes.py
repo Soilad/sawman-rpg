@@ -281,9 +281,6 @@ class Inventory:
             k: fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255))
             for k, v in self.invbox.items()
         }
-        self.tubes = []
-        pygame.mouse.set_visible(not pygame.mouse.get_visible())
-        self.invshow = not self.invshow
 
     def open(self, sawman, mscroll, mtogg, tick):
         self.ymov = round(
@@ -1366,71 +1363,58 @@ class Trader:
 
 
 class Button:
+    thicc = 0
+
     def __init__(self, id, pos, dim, thicc):
         self.id = id
         self.pos = pos
         self.dim = dim
-        self.thicc = thicc
+        self.thiccmax = thicc
         self.brect = pygame.Rect(
-            self.pos[0] - (self.dim[0] * uiscale / 2),
+            self.pos[0] - (self.dim[0] / 2),
             self.pos[1],
-            self.dim[0] * uiscale,
-            self.dim[1] * uiscale,
+            self.dim[0],
+            self.dim[1],
         )
+        self.rect = pygame.Rect((0, 0), dim)
+        # NOTE(soi): yea pygame already has a thing for centering rects, should read the documentation more smsmsmh
+        self.rect.center = pos
 
-    def draw(self, screen, mpos, mtogg, tab, settings_json):
-        if pygame.Rect.collidepoint(self.brect, mpos):
+    def draw(self, screen, mpos, btogg, tab, settings_json):
+        hovered = pygame.Rect.collidepoint(self.rect, mpos)
+
+        if hovered:
+            if self.thicc < self.thiccmax:
+                self.thicc += 1
+                # self.thicc = lerp(
+                #     self.thicc,
+                #     self.thiccmax,
+                #     (tick - self.last_tick) / 5,
+                # )
+        else:
+            self.thicc = max(self.thicc - 1, 0)
+            # self.last_tick = tick
+
+        scaled_thicc = self.thicc
+
+        if scaled_thicc:
             pygame.draw.rect(
                 screen,
                 (255, 0, 0),
                 pygame.Rect(
-                    self.pos[0] - (self.dim[0] * uiscale / 2),
-                    self.pos[1] - (self.thicc * uiscale),
-                    self.dim[0] * uiscale,
-                    self.dim[1] * uiscale + (self.thicc * uiscale * 2),
+                    self.rect.x - scaled_thicc,
+                    self.rect.y - scaled_thicc,
+                    self.rect.width + scaled_thicc * 2,
+                    self.rect.height + scaled_thicc * 2,
                 ),
-            )
-            pygame.draw.circle(
-                screen,
-                (255, 0, 0),
-                (
-                    self.pos[0] - (self.dim[0] * uiscale / 2),
-                    self.pos[1] + (self.dim[1] * uiscale / 2),
-                ),
-                (self.dim[1] * uiscale / 2) + self.thicc * uiscale,
-            )
-            pygame.draw.circle(
-                screen,
-                (255, 0, 0),
-                (
-                    self.pos[0] + (self.dim[0] * uiscale / 2),
-                    self.pos[1] + (self.dim[1] * uiscale / 2),
-                ),
-                (self.dim[1] * uiscale / 2) + self.thicc * uiscale,
+                border_radius=(self.rect.height * scaled_thicc // 2),
             )
 
         pygame.draw.rect(
             screen,
             (0, 0, 0),
-            self.brect,
-        )
-        pygame.draw.circle(
-            screen,
-            (0, 0, 0),
-            (
-                self.pos[0] - (self.dim[0] * uiscale / 2),
-                self.pos[1] + (self.dim[1] * uiscale / 2),
-            ),
-            (self.dim[1] * uiscale / 2),
-        )
-        pygame.draw.circle(
-            screen,
-            (0, 0, 0),
-            (
-                self.pos[0] + (self.dim[0] * uiscale / 2),
-                self.pos[1] + (self.dim[1] * uiscale / 2),
-            ),
-            (self.dim[1] * uiscale / 2),
+            self.rect,
+            border_radius=(self.rect.height // 2),
         )
 
         text = (
@@ -1438,22 +1422,23 @@ class Button:
             if self.id in settings_json
             else self.id
         )
+        self.text = text
         font_render = fontmin.render(
             text,
             fontaliased,
             (255, 0, 0)
-            if pygame.Rect.collidepoint(self.brect, mpos) and mtogg
+            if pygame.Rect.collidepoint(self.rect, mpos) and btogg
             else (255, 255, 255),
         )
         screen.blit(
             font_render,
             (
-                self.pos[0] - (font_render.get_width() / 2),
-                self.pos[1] + (self.thicc * uiscale),
+                self.rect.centerx - font_render.get_width() / 2,
+                self.rect.y + (self.thiccmax),
             ),
         )
 
-        if pygame.Rect.collidepoint(self.brect, mpos) and mtogg:
+        if pygame.Rect.collidepoint(self.rect, mpos) and btogg:
             return self.id
 
 
