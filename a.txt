@@ -1,0 +1,132 @@
+pygame-ce 2.5.5 (SDL 2.32.6, Python 3.10.12)
+PygameShader version 1.0.11 
+OPENMP True 
+THREADS 12 
+SCHEDULE static 
+16
+(('cutscene', 'willi.mp4'), 'NO WAY?!?!?!?')
+(('zweistein', 'sad'), 'wtf')
+(0, 'im gonna steal your balls')
+(('sawman', 'woe'), 'YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT')
+[['', 'N', 'No', 'No ', 'No w', 'No wa', 'No way', 'No way?', 'No way?!', 'No way?!?', 'No way?!?!', 'No way?!?!?', 'No way?!?!?!', 'No way?!?!?!?'], ['', 'W', 'Wt', 'Wtf'], ['', 'I', 'Im', 'Im ', 'Im g', 'Im go', 'Im gon', 'Im gonn', 'Im gonna', 'Im gonna ', 'Im gonna s', 'Im gonna st', 'Im gonna ste', 'Im gonna stea', 'Im gonna steal', 'Im gonna steal ', 'Im gonna steal y', 'Im gonna steal yo', 'Im gonna steal you', 'Im gonna steal your', 'Im gonna steal your ', 'Im gonna steal your b', 'Im gonna steal your ba', 'Im gonna steal your bal', 'Im gonna steal your ball', 'Im gonna steal your balls'], ['', 'Y', 'Yo', 'You', 'You ', 'You c', 'You ca', 'You can', 'You cant', 'You cant ', 'You cant j', 'You cant ju', 'You cant jus', 'You cant just', 'You cant just ', 'You cant just s', 'You cant just st', 'You cant just ste', 'You cant just stea', 'You cant just steal', 'You cant just steal ', 'You cant just steal t', 'You cant just steal th', 'You cant just steal the', 'You cant just steal the ', 'You cant just steal the p', 'You cant just steal the pl', 'You cant just steal the plo', 'You cant just steal the plot', 'You cant just steal the plot ', 'You cant just steal the plot o', 'You cant just steal the plot of', 'You cant just steal the plot of ', 'You cant just steal the plot of \n', 'You cant just steal the plot of \nd', 'You cant just steal the plot of \nda', 'You cant just steal the plot of \ndan', 'You cant just steal the plot of \ndand', 'You cant just steal the plot of \ndanda', 'You cant just steal the plot of \ndandad', 'You cant just steal the plot of \ndandada', 'You cant just steal the plot of \ndandadan', 'You cant just steal the plot of \ndandadan ', 'You cant just steal the plot of \ndandadan c', 'You cant just steal the plot of \ndandadan co', 'You cant just steal the plot of \ndandadan con', 'You cant just steal the plot of \ndandadan cont', 'You cant just steal the plot of \ndandadan contr', 'You cant just steal the plot of \ndandadan contra', 'You cant just steal the plot of \ndandadan contrac', 'You cant just steal the plot of \ndandadan contract']]
+(('sawman', 'ono'), 'NO WAY?!?!?!?')
+(('zweistein', 'sad'), 'wtf')
+(0, 'im gonna steal your balls')
+(('sawman', 'woe'), 'YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT')
+[['', 'N', 'No', 'No ', 'No w', 'No wa', 'No way', 'No way?', 'No way?!', 'No way?!?', 'No way?!?!', 'No way?!?!?', 'No way?!?!?!', 'No way?!?!?!?'], ['', 'W', 'Wt', 'Wtf'], ['', 'I', 'Im', 'Im ', 'Im g', 'Im go', 'Im gon', 'Im gonn', 'Im gonna', 'Im gonna ', 'Im gonna s', 'Im gonna st', 'Im gonna ste', 'Im gonna stea', 'Im gonna steal', 'Im gonna steal ', 'Im gonna steal y', 'Im gonna steal yo', 'Im gonna steal you', 'Im gonna steal your', 'Im gonna steal your ', 'Im gonna steal your b', 'Im gonna steal your ba', 'Im gonna steal your bal', 'Im gonna steal your ball', 'Im gonna steal your balls'], ['', 'Y', 'Yo', 'You', 'You ', 'You c', 'You ca', 'You can', 'You cant', 'You cant ', 'You cant j', 'You cant ju', 'You cant jus', 'You cant just', 'You cant just ', 'You cant just s', 'You cant just st', 'You cant just ste', 'You cant just stea', 'You cant just steal', 'You cant just steal ', 'You cant just steal t', 'You cant just steal th', 'You cant just steal the', 'You cant just steal the ', 'You cant just steal the p', 'You cant just steal the pl', 'You cant just steal the plo', 'You cant just steal the plot', 'You cant just steal the plot ', 'You cant just steal the plot o', 'You cant just steal the plot of', 'You cant just steal the plot of ', 'You cant just steal the plot of \n', 'You cant just steal the plot of \nd', 'You cant just steal the plot of \nda', 'You cant just steal the plot of \ndan', 'You cant just steal the plot of \ndand', 'You cant just steal the plot of \ndanda', 'You cant just steal the plot of \ndandad', 'You cant just steal the plot of \ndandada', 'You cant just steal the plot of \ndandadan', 'You cant just steal the plot of \ndandadan ', 'You cant just steal the plot of \ndandadan c', 'You cant just steal the plot of \ndandadan co', 'You cant just steal the plot of \ndandadan con', 'You cant just steal the plot of \ndandadan cont', 'You cant just steal the plot of \ndandadan contr', 'You cant just steal the plot of \ndandadan contra', 'You cant just steal the plot of \ndandadan contrac', 'You cant just steal the plot of \ndandadan contract']]
+(('zweistein', 'sus'), 'its like a great man once said')
+(('zweistein', 'woe'), 'with great power')
+(('sawman', 'hapi'), 'comes great electricity bill')
+[['', 'I', 'It', 'Its', 'Its ', 'Its l', 'Its li', 'Its lik', 'Its like', 'Its like ', 'Its like a', 'Its like a ', 'Its like a g', 'Its like a gr', 'Its like a gre', 'Its like a grea', 'Its like a great', 'Its like a great ', 'Its like a great m', 'Its like a great ma', 'Its like a great man', 'Its like a great man ', 'Its like a great man o', 'Its like a great man on', 'Its like a great man onc', 'Its like a great man once', 'Its like a great man once ', 'Its like a great man once s', 'Its like a great man once sa', 'Its like a great man once sai', 'Its like a great man once said'], ['', 'W', 'Wi', 'Wit', 'With', 'With ', 'With g', 'With gr', 'With gre', 'With grea', 'With great', 'With great ', 'With great p', 'With great po', 'With great pow', 'With great powe', 'With great power'], ['', 'C', 'Co', 'Com', 'Come', 'Comes', 'Comes ', 'Comes g', 'Comes gr', 'Comes gre', 'Comes grea', 'Comes great', 'Comes great ', 'Comes great e', 'Comes great el', 'Comes great ele', 'Comes great elec', 'Comes great elect', 'Comes great electr', 'Comes great electri', 'Comes great electric', 'Comes great electrici', 'Comes great electricit', 'Comes great electricity', 'Comes great electricity ', 'Comes great electricity b', 'Comes great electricity bi', 'Comes great electricity bil', 'Comes great electricity bill']]
+(('sawman', 'hapi'), 'I')
+(('sawman', 'sad'), 'dont remember this college being here before')
+(('zweistein', 'ono'), 'i guess itsa new one')
+(('sawman', 'hapi'), 'hell yea, im old')
+[['', 'I'], ['', 'D', 'Do', 'Don', 'Dont', 'Dont ', 'Dont r', 'Dont re', 'Dont rem', 'Dont reme', 'Dont remem', 'Dont rememb', 'Dont remembe', 'Dont remember', 'Dont remember ', 'Dont remember t', 'Dont remember th', 'Dont remember thi', 'Dont remember this', 'Dont remember this ', 'Dont remember this c', 'Dont remember this co', 'Dont remember this col', 'Dont remember this coll', 'Dont remember this colle', 'Dont remember this colleg', 'Dont remember this college', 'Dont remember this college ', 'Dont remember this college b', 'Dont remember this college be', 'Dont remember this college bei', 'Dont remember this college bein', 'Dont remember this college being', 'Dont remember this college being ', 'Dont remember this college being h', 'Dont remember this college being he', 'Dont remember this college being her', 'Dont remember this college being here', 'Dont remember this college being here ', 'Dont remember this college being here b', 'Dont remember this college being here be', 'Dont remember this college being here bef', 'Dont remember this college being here befo', 'Dont remember this college being here befor', 'Dont remember this college being here before'], ['', 'I', 'I ', 'I g', 'I gu', 'I gue', 'I gues', 'I guess', 'I guess ', 'I guess i', 'I guess it', 'I guess its', 'I guess itsa', 'I guess itsa ', 'I guess itsa n', 'I guess itsa ne', 'I guess itsa new', 'I guess itsa new ', 'I guess itsa new o', 'I guess itsa new on', 'I guess itsa new one'], ['', 'H', 'He', 'Hel', 'Hell', 'Hell ', 'Hell y', 'Hell ye', 'Hell yea', 'Hell yea,', 'Hell yea, ', 'Hell yea, i', 'Hell yea, im', 'Hell yea, im ', 'Hell yea, im o', 'Hell yea, im ol', 'Hell yea, im old']]
+(('sawman', 'woe'), 'why is there a police car outside us')
+(('zweistein', 'sad'), 'i mean')
+(('zweistein', 'woe'), 'atleast its empty')
+(('sawman', 'angy'), 'true')
+(('sawman', 'sad'), 'hopefully it isnt here because of us')
+[['', 'W', 'Wh', 'Why', 'Why ', 'Why i', 'Why is', 'Why is ', 'Why is t', 'Why is th', 'Why is the', 'Why is ther', 'Why is there', 'Why is there ', 'Why is there a', 'Why is there a ', 'Why is there a p', 'Why is there a po', 'Why is there a pol', 'Why is there a poli', 'Why is there a polic', 'Why is there a police', 'Why is there a police ', 'Why is there a police c', 'Why is there a police ca', 'Why is there a police car', 'Why is there a police car ', 'Why is there a police car o', 'Why is there a police car ou', 'Why is there a police car out', 'Why is there a police car outs', 'Why is there a police car outsi', 'Why is there a police car outsid', 'Why is there a police car outside', 'Why is there a police car outside ', 'Why is there a police car outside \n', 'Why is there a police car outside \nu', 'Why is there a police car outside \nus'], ['', 'I', 'I ', 'I m', 'I me', 'I mea', 'I mean'], ['', 'A', 'At', 'Atl', 'Atle', 'Atlea', 'Atleas', 'Atleast', 'Atleast ', 'Atleast i', 'Atleast it', 'Atleast its', 'Atleast its ', 'Atleast its e', 'Atleast its em', 'Atleast its emp', 'Atleast its empt', 'Atleast its empty'], ['', 'T', 'Tr', 'Tru', 'True'], ['', 'H', 'Ho', 'Hop', 'Hope', 'Hopef', 'Hopefu', 'Hopeful', 'Hopefull', 'Hopefully', 'Hopefully ', 'Hopefully i', 'Hopefully it', 'Hopefully it ', 'Hopefully it i', 'Hopefully it is', 'Hopefully it isn', 'Hopefully it isnt', 'Hopefully it isnt ', 'Hopefully it isnt h', 'Hopefully it isnt he', 'Hopefully it isnt her', 'Hopefully it isnt here', 'Hopefully it isnt here ', 'Hopefully it isnt here b', 'Hopefully it isnt here be', 'Hopefully it isnt here bec', 'Hopefully it isnt here beca', 'Hopefully it isnt here becau', 'Hopefully it isnt here becaus', 'Hopefully it isnt here because', 'Hopefully it isnt here because ', 'Hopefully it isnt here because o', 'Hopefully it isnt here because of', 'Hopefully it isnt here because of ', 'Hopefully it isnt here because of u', 'Hopefully it isnt here because of us']]
+(('sawman', 'hapi'), '...')
+(('npc', 'wamen1'), '...')
+(('sawman', 'angy'), '...')
+(('zweistein', 'sad'), 'do you seriously walk up to people and expect them to talk first?')
+(('sawman', 'sad'), 'let me handle this')
+(('sawman', 'angy'), 'ok sawman')
+(('sawman', 'ono'), 'you can overcome your fears this time')
+(('npc', 'wamen1'), '...')
+(('sawman', 'hapi'), 'Hi im-')
+(('npc', 'wamen1'), 'i have a boyfriend.')
+(('sawman', 'sad'), '...')
+(('zweistein', 'hapi'), 'that couldve gotten wayy worse')
+(0, '*You got gynophobia *')
+[['', '.', '..', '...'], ['', '.', '..', '...'], ['', '.', '..', '...'], ['', 'D', 'Do', 'Do ', 'Do y', 'Do yo', 'Do you', 'Do you ', 'Do you s', 'Do you se', 'Do you ser', 'Do you seri', 'Do you serio', 'Do you seriou', 'Do you serious', 'Do you seriousl', 'Do you seriously', 'Do you seriously ', 'Do you seriously w', 'Do you seriously wa', 'Do you seriously wal', 'Do you seriously walk', 'Do you seriously walk ', 'Do you seriously walk u', 'Do you seriously walk up', 'Do you seriously walk up ', 'Do you seriously walk up t', 'Do you seriously walk up to', 'Do you seriously walk up to ', 'Do you seriously walk up to p', 'Do you seriously walk up to pe', 'Do you seriously walk up to peo', 'Do you seriously walk up to peop', 'Do you seriously walk up to peopl', 'Do you seriously walk up to people', 'Do you seriously walk up to people ', 'Do you seriously walk up to people \n', 'Do you seriously walk up to people \na', 'Do you seriously walk up to people \nan', 'Do you seriously walk up to people \nand', 'Do you seriously walk up to people \nand ', 'Do you seriously walk up to people \nand e', 'Do you seriously walk up to people \nand ex', 'Do you seriously walk up to people \nand exp', 'Do you seriously walk up to people \nand expe', 'Do you seriously walk up to people \nand expec', 'Do you seriously walk up to people \nand expect', 'Do you seriously walk up to people \nand expect ', 'Do you seriously walk up to people \nand expect t', 'Do you seriously walk up to people \nand expect th', 'Do you seriously walk up to people \nand expect the', 'Do you seriously walk up to people \nand expect them', 'Do you seriously walk up to people \nand expect them ', 'Do you seriously walk up to people \nand expect them t', 'Do you seriously walk up to people \nand expect them to', 'Do you seriously walk up to people \nand expect them to ', 'Do you seriously walk up to people \nand expect them to t', 'Do you seriously walk up to people \nand expect them to ta', 'Do you seriously walk up to people \nand expect them to tal', 'Do you seriously walk up to people \nand expect them to talk', 'Do you seriously walk up to people \nand expect them to talk ', 'Do you seriously walk up to people \nand expect them to talk f', 'Do you seriously walk up to people \nand expect them to talk fi', 'Do you seriously walk up to people \nand expect them to talk fir', 'Do you seriously walk up to people \nand expect them to talk firs', 'Do you seriously walk up to people \nand expect them to talk first', 'Do you seriously walk up to people \nand expect them to talk first?'], ['', 'L', 'Le', 'Let', 'Let ', 'Let m', 'Let me', 'Let me ', 'Let me h', 'Let me ha', 'Let me han', 'Let me hand', 'Let me handl', 'Let me handle', 'Let me handle ', 'Let me handle t', 'Let me handle th', 'Let me handle thi', 'Let me handle this'], ['', 'O', 'Ok', 'Ok ', 'Ok s', 'Ok sa', 'Ok saw', 'Ok sawm', 'Ok sawma', 'Ok sawman'], ['', 'Y', 'Yo', 'You', 'You ', 'You c', 'You ca', 'You can', 'You can ', 'You can o', 'You can ov', 'You can ove', 'You can over', 'You can overc', 'You can overco', 'You can overcom', 'You can overcome', 'You can overcome ', 'You can overcome y', 'You can overcome yo', 'You can overcome you', 'You can overcome your', 'You can overcome your ', 'You can overcome your f', 'You can overcome your fe', 'You can overcome your fea', 'You can overcome your fear', 'You can overcome your fears', 'You can overcome your fears ', 'You can overcome your fears t', 'You can overcome your fears th', 'You can overcome your fears thi', 'You can overcome your fears this', 'You can overcome your fears this ', 'You can overcome your fears this t', 'You can overcome your fears this ti', 'You can overcome your fears this tim', 'You can overcome your fears this time'], ['', '.', '..', '...'], ['', 'H', 'Hi', 'Hi ', 'Hi i', 'Hi im', 'Hi im-'], ['', 'I', 'I ', 'I h', 'I ha', 'I hav', 'I have', 'I have ', 'I have a', 'I have a ', 'I have a b', 'I have a bo', 'I have a boy', 'I have a boyf', 'I have a boyfr', 'I have a boyfri', 'I have a boyfrie', 'I have a boyfrien', 'I have a boyfriend', 'I have a boyfriend.'], ['', '.', '..', '...'], ['', 'T', 'Th', 'Tha', 'That', 'That ', 'That c', 'That co', 'That cou', 'That coul', 'That could', 'That couldv', 'That couldve', 'That couldve ', 'That couldve g', 'That couldve go', 'That couldve got', 'That couldve gott', 'That couldve gotte', 'That couldve gotten', 'That couldve gotten ', 'That couldve gotten w', 'That couldve gotten wa', 'That couldve gotten way', 'That couldve gotten wayy', 'That couldve gotten wayy ', 'That couldve gotten wayy w', 'That couldve gotten wayy wo', 'That couldve gotten wayy wor', 'That couldve gotten wayy wors', 'That couldve gotten wayy worse'], ['', '*', '*y', '*yo', '*you', '*you ', '*you g', '*you go', '*you got', '*you got ', '*you got g', '*you got gy', '*you got gyn', '*you got gyno', '*you got gynop', '*you got gynoph', '*you got gynopho', '*you got gynophob', '*you got gynophobi', '*you got gynophobia', '*you got gynophobia ', '*you got gynophobia *']]
+(('zweistein', 'hapi'), 'horsie!!')
+(('zweistein', 'ono'), 'OHGOD WHAT IS THAT')
+(('cutscene', 'dark'), '...')
+(('cutscene', 'horseman'), 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொள்.')
+(('sawman', 'ono'), 'UHHHHH, CAN I HELP YOU??????????????????????????')
+(('zweistein', 'sad'), '...')
+(('zweistein', 'angy'), 'i dont think we can help him given the state hes in')
+(('sawman', 'sus'), '...')
+[['', 'H', 'Ho', 'Hor', 'Hors', 'Horsi', 'Horsie', 'Horsie!', 'Horsie!!'], ['', 'O', 'Oh', 'Ohg', 'Ohgo', 'Ohgod', 'Ohgod ', 'Ohgod w', 'Ohgod wh', 'Ohgod wha', 'Ohgod what', 'Ohgod what ', 'Ohgod what i', 'Ohgod what is', 'Ohgod what is ', 'Ohgod what is t', 'Ohgod what is th', 'Ohgod what is tha', 'Ohgod what is that'], ['', '.', '..', '...'], ['', 'எ', 'எ-', 'எ-எ', 'எ-என', 'எ-என்', 'எ-என் ', 'எ-என் வ', 'எ-என் வா', 'எ-என் வாழ', 'எ-என் வாழ்', 'எ-என் வாழ்க', 'எ-என் வாழ்க்', 'எ-என் வாழ்க்க', 'எ-என் வாழ்க்கை', 'எ-என் வாழ்க்கைய', 'எ-என் வாழ்க்கையை', 'எ-என் வாழ்க்கையை ', 'எ-என் வாழ்க்கையை ம', 'எ-என் வாழ்க்கையை மு', 'எ-என் வாழ்க்கையை மு-', 'எ-என் வாழ்க்கையை மு-ம', 'எ-என் வாழ்க்கையை மு-மு', 'எ-என் வாழ்க்கையை மு-மு-', 'எ-என் வாழ்க்கையை மு-மு-ம', 'எ-என் வாழ்க்கையை மு-மு-மு', 'எ-என் வாழ்க்கையை மு-மு-முட', 'எ-என் வாழ்க்கையை மு-மு-முடி', 'எ-என் வாழ்க்கையை மு-மு-முடித', 'எ-என் வாழ்க்கையை மு-மு-முடித்', 'எ-என் வாழ்க்கையை மு-மு-முடித்த', 'எ-என் வாழ்க்கையை மு-மு-முடித்து', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்க', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொ', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொள', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொள்', 'எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொள்.'], ['', 'U', 'Uh', 'Uhh', 'Uhhh', 'Uhhhh', 'Uhhhhh', 'Uhhhhh,', 'Uhhhhh, ', 'Uhhhhh, c', 'Uhhhhh, ca', 'Uhhhhh, can', 'Uhhhhh, can ', 'Uhhhhh, can i', 'Uhhhhh, can i ', 'Uhhhhh, can i h', 'Uhhhhh, can i he', 'Uhhhhh, can i hel', 'Uhhhhh, can i help', 'Uhhhhh, can i help ', 'Uhhhhh, can i help y', 'Uhhhhh, can i help yo', 'Uhhhhh, can i help you', 'Uhhhhh, can i help you?', 'Uhhhhh, can i help you??', 'Uhhhhh, can i help you???', 'Uhhhhh, can i help you????', 'Uhhhhh, can i help you?????', 'Uhhhhh, can i help you??????', 'Uhhhhh, can i help you???????', 'Uhhhhh, can i help you????????', 'Uhhhhh, can i help you?????????', 'Uhhhhh, can i help you??????????', 'Uhhhhh, can i help you???????????', 'Uhhhhh, can i help you????????????', 'Uhhhhh, can i help you?????????????', 'Uhhhhh, can i help you??????????????', 'Uhhhhh, can i help you???????????????', 'Uhhhhh, can i help you????????????????', 'Uhhhhh, can i help you?????????????????', 'Uhhhhh, can i help you??????????????????', 'Uhhhhh, can i help you???????????????????', 'Uhhhhh, can i help you????????????????????', 'Uhhhhh, can i help you?????????????????????', 'Uhhhhh, can i help you??????????????????????', 'Uhhhhh, can i help you???????????????????????', 'Uhhhhh, can i help you????????????????????????', 'Uhhhhh, can i help you?????????????????????????', 'Uhhhhh, can i help you??????????????????????????'], ['', '.', '..', '...'], ['', 'I', 'I ', 'I d', 'I do', 'I don', 'I dont', 'I dont ', 'I dont t', 'I dont th', 'I dont thi', 'I dont thin', 'I dont think', 'I dont think ', 'I dont think w', 'I dont think we', 'I dont think we ', 'I dont think we c', 'I dont think we ca', 'I dont think we can', 'I dont think we can ', 'I dont think we can h', 'I dont think we can he', 'I dont think we can hel', 'I dont think we can help', 'I dont think we can help ', 'I dont think we can help h', 'I dont think we can help hi', 'I dont think we can help him', 'I dont think we can help him ', 'I dont think we can help him \n', 'I dont think we can help him \ng', 'I dont think we can help him \ngi', 'I dont think we can help him \ngiv', 'I dont think we can help him \ngive', 'I dont think we can help him \ngiven', 'I dont think we can help him \ngiven ', 'I dont think we can help him \ngiven t', 'I dont think we can help him \ngiven th', 'I dont think we can help him \ngiven the', 'I dont think we can help him \ngiven the ', 'I dont think we can help him \ngiven the s', 'I dont think we can help him \ngiven the st', 'I dont think we can help him \ngiven the sta', 'I dont think we can help him \ngiven the stat', 'I dont think we can help him \ngiven the state', 'I dont think we can help him \ngiven the state ', 'I dont think we can help him \ngiven the state h', 'I dont think we can help him \ngiven the state he', 'I dont think we can help him \ngiven the state hes', 'I dont think we can help him \ngiven the state hes ', 'I dont think we can help him \ngiven the state hes i', 'I dont think we can help him \ngiven the state hes in'], ['', '.', '..', '...']]
+(('sawman', 'woe'), 'NO WAY, FOILIAGE')
+(('zweistein', 'sus'), 'wait why is there vodka next to it?')
+(0, '*you got vodka*')
+[['', 'N', 'No', 'No ', 'No w', 'No wa', 'No way', 'No way,', 'No way, ', 'No way, f', 'No way, fo', 'No way, foi', 'No way, foil', 'No way, foili', 'No way, foilia', 'No way, foiliag', 'No way, foiliage'], ['', 'W', 'Wa', 'Wai', 'Wait', 'Wait ', 'Wait w', 'Wait wh', 'Wait why', 'Wait why ', 'Wait why i', 'Wait why is', 'Wait why is ', 'Wait why is t', 'Wait why is th', 'Wait why is the', 'Wait why is ther', 'Wait why is there', 'Wait why is there ', 'Wait why is there v', 'Wait why is there vo', 'Wait why is there vod', 'Wait why is there vodk', 'Wait why is there vodka', 'Wait why is there vodka ', 'Wait why is there vodka n', 'Wait why is there vodka ne', 'Wait why is there vodka nex', 'Wait why is there vodka next', 'Wait why is there vodka next ', 'Wait why is there vodka next t', 'Wait why is there vodka next to', 'Wait why is there vodka next to ', 'Wait why is there vodka next to \n', 'Wait why is there vodka next to \ni', 'Wait why is there vodka next to \nit', 'Wait why is there vodka next to \nit?'], ['', '*', '*y', '*yo', '*you', '*you ', '*you g', '*you go', '*you got', '*you got ', '*you got v', '*you got vo', '*you got vod', '*you got vodk', '*you got vodka', '*you got vodka*']]
+11 09 AM
+838.0147364712877
+822.2582166415862
+806.5016968118846
+790.745176982183
+774.9886571524814
+759.2321373227799
+743.4756174930783
+727.7190976633767
+711.9625778336751
+696.2060580039736
+680.449538174272
+664.6930183445704
+648.9364985148688
+633.1799786851673
+617.4234588554657
+601.6669390257641
+585.9104191960625
+570.153899366361
+554.3973795366594
+538.6408597069578
+522.8843398772563
+507.1278200475546
+491.371300217853
+475.61478038815136
+459.85826055844973
+444.1017407287481
+428.34522089904647
+412.58870106934484
+396.8321812396432
+381.0756614099416
+365.31914158023994
+349.5626217505383
+333.8061019208367
+318.04958209113505
+302.2930622614334
+286.5365424317318
+270.78002260203016
+255.02350277232853
+239.2669829426269
+223.51046311292527
+207.75394328322363
+191.997423453522
+176.24090362382037
+160.48438379411874
+144.7278639644171
+128.97134413471548
+113.21482430501386
+97.45830447531225
+81.70178464561063
+65.94526481590901
+50.18874498620739
+34.432225156505766
+984.2434801702984
+968.2101468369651
+952.1768135036318
+936.1434801702985
+920.1101468369652
+904.0768135036319
+888.0434801702986
+872.0101468369653
+855.976813503632
+839.9434801702987
+823.9101468369654
+807.8768135036321
+791.8434801702988
+775.8101468369655
+759.7768135036322
+743.7434801702989
+727.7101468369656
+711.6768135036323
+695.643480170299
+679.6101468369657
+663.5768135036324

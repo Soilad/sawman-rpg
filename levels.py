@@ -6,56 +6,56 @@ levels = [
         "I_forgor_my_wallet",
         0,
         [
-            # Obj(
-            #     f"{cwd}/sprites/npc/contractman.png",
-            #     (480, 280),
-            #     [{("Okaruns balls", 0): 3}],
-            #     [
-            #         [
-            #             (("sawman", "ono"), "NO WAY?!?!?!?"),
-            #             (("zweistein", "sad"), "wtf"),
-            #             (0, "im gonna steal your balls"),
-            #             (
-            #                 ("sawman", "woe"),
-            #                 "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
-            #             ),
-            #         ],
-            #         [
-            #             (("zweistein", "sad"), "why tf did u give us okarun's balls"),
-            #             (
-            #                 0,
-            #                 "its gonna take me years to castrate someone with no balls so take this and leave",
-            #             ),
-            #             (("sawman", "ono"), "..."),
-            #             (("sawman", "sad"), "jesus"),
-            #         ],
-            #     ],
-            # ),
-            # Obj(
-            #     f"{cwd}/sprites/npc/contractman.png",
-            #     (800, 300),
-            #     [{("Okaruns balls", 0): -2}],
-            #     [
-            #         [
-            #             (("sawman", "ono"), "NO WAY?!?!?!?"),
-            #             (("zweistein", "sad"), "wtf"),
-            #             (0, "im gonna steal your balls"),
-            #             (
-            #                 ("sawman", "woe"),
-            #                 "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
-            #             ),
-            #         ],
-            #         [
-            #             (("zweistein", "sad"), "why tf did u give us okarun's balls"),
-            #             (
-            #                 0,
-            #                 "its gonna take me years to castrate someone with no balls so take this and leave",
-            #             ),
-            #             (("sawman", "ono"), "..."),
-            #             (("sawman", "sad"), "jesus"),
-            #         ],
-            #     ],
-            # ),
+            Obj(
+                f"{cwd}/sprites/npc/contractman.png",
+                (480 + 1280, 280 + 720),
+                [{("Okaruns balls", 0): 3}],
+                [
+                    [
+                        (("cutscene", "willi.mp4"), "NO WAY?!?!?!?"),
+                        (("zweistein", "sad"), "wtf"),
+                        (0, "im gonna steal your balls"),
+                        (
+                            ("sawman", "woe"),
+                            "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
+                        ),
+                    ],
+                    [
+                        (("zweistein", "sad"), "why tf did u give us okarun's balls"),
+                        (
+                            0,
+                            "its gonna take me years to castrate someone with no balls so take this and leave",
+                        ),
+                        (("sawman", "ono"), "..."),
+                        (("sawman", "sad"), "jesus"),
+                    ],
+                ],
+            ),
+            Obj(
+                f"{cwd}/sprites/npc/contractman.png",
+                (800 + 1280, 300 + 720),
+                [{("Okaruns balls", 0): -2}],
+                [
+                    [
+                        (("sawman", "ono"), "NO WAY?!?!?!?"),
+                        (("zweistein", "sad"), "wtf"),
+                        (0, "im gonna steal your balls"),
+                        (
+                            ("sawman", "woe"),
+                            "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
+                        ),
+                    ],
+                    [
+                        (("zweistein", "sad"), "why tf did u give us okarun's balls"),
+                        (
+                            0,
+                            "its gonna take me years to castrate someone with no balls so take this and leave",
+                        ),
+                        (("sawman", "ono"), "..."),
+                        (("sawman", "sad"), "jesus"),
+                    ],
+                ],
+            ),
         ],
         [Portal((1230 + 1280, 570 + 720), (100, 200), 1, (274, 208))],
         "",

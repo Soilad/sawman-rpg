@@ -2,6 +2,7 @@ import pygame
 from os import getcwd
 from datetime import datetime
 from pygame.image import save
+from pygamevideo import Video
 from pygame.math import lerp, clamp
 import pytz
 from functools import reduce
@@ -57,7 +58,6 @@ class Chara:
     frame = money = dir = dindex = rindex = 0
     scale = 1
     stop = inenem = False
-    mtogg = True
     mask = pygame.mask.Mask((50, 50), fill=True)
     group = {}
 
@@ -255,7 +255,8 @@ class Inventory:
     tubes = []
     zhands = ""
     shands = ""
-    tubetext1 = tubetext2 = fontmed.render("", fontaliased, (255, 0, 0))
+    nonetext = fontmed.render("", fontaliased, (0, 0, 0))
+    tubetext1 = tubetext2 = nonetext
     a = 0
     ymov = -720
     middlemouse = True
@@ -280,9 +281,11 @@ class Inventory:
             k: fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 255, 255))
             for k, v in self.invbox.items()
         }
-        print(self.invbox)
+        self.tubes = []
+        pygame.mouse.set_visible(not pygame.mouse.get_visible())
+        self.invshow = not self.invshow
 
-    def open(self, sawman, mscroll, tick):
+    def open(self, sawman, mscroll, mtogg, tick):
         self.ymov = round(
             lerp(self.ymov, (not self.invshow) * -720, (tick - self.a) / 45)
         )
@@ -345,7 +348,7 @@ class Inventory:
                     itemtext.get_rect(topleft=(420, 75 + (50 * itemdex))).collidepoint(
                         mpos
                     )
-                    and sawman.mtogg
+                    and mtogg
                 ):
                     match mouses:
                         case _, _, 1:
@@ -362,10 +365,10 @@ class Inventory:
                                             del self.invbox[k]
                                         else:
                                             self.invbox[k] -= 1
-                                        sawman.mtogg = False
+                                        mtogg = False
                                     self.info = "yim yum"
                         case _, 1, _:
-                            if sawman.mtogg:
+                            if mtogg:
                                 if k[1] < -1:
                                     if self.zhands:
                                         self.invbox[self.zhands] = (
@@ -392,7 +395,7 @@ class Inventory:
                                         self.invbox[k] -= 1
                                     self.shands = k
                                     self.update()
-                                sawman.mtogg = False
+                                mtogg = False
                         case 1, _, _:
                             if len(self.tubes) < 2:
                                 if k not in self.tubes:
@@ -449,7 +452,7 @@ class Inventory:
                                             )
                                             self.result = f"{self.result}+{x[0]}"  # ono
                                         self.result = self.result[1::]
-                                    sawman.mtogg = False
+                                    mtogg = False
                                     self.tubes = []
                                     self.update()
                             else:
@@ -463,8 +466,9 @@ class Inventory:
                     self.invbox.pop(k)
                 screen.blit(itemtext, (420, 75 + (50 * itemdex) + self.ymov))
                 itemdex += 1
-                screen.blit(self.tubetext1, (1042, 220 + self.ymov))
-                screen.blit(self.tubetext2, (1082, 220 + self.ymov))
+                if self.tubes:
+                    screen.blit(self.tubetext1, (1042, 220 + self.ymov))
+                    screen.blit(self.tubetext2, (1082, 220 + self.ymov))
                 i = 0
                 for r in self.result.split("+"):
                     screen.blit(
@@ -495,8 +499,20 @@ class Obj:
         self.sprite = shadow(pygame.image.load(sprite).convert_alpha(), 5, (0, 0, 0))
         self.dialogs = dialogs
         self.dialog = dialogs[0]
+        for i in self.dialog:
+            print(i)
+            if i[0]:
+                if i[0][1].endswith(".mp4"):
+                    self.dialog[self.dialog.index(i)] = (
+                        (
+                            i[0][0],
+                            Video(f"{cwd}/sprites/faces/{i[0][0]}/{i[0][1]}"),
+                        ),
+                        self.dialog[self.dialog.index(i)][1],
+                    )
         self.dialen = len(self.dialog)
         self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+        print(self.diarender)
         for i in self.diarender:
             idex = self.diarender.index(i)
             for j in i:
@@ -566,12 +582,25 @@ class Obj:
                     sawman.dindex - 1
                 ][0][1]
             for f in sorted(sawman.group.keys()):
-                screen.blit(
-                    pygame.image.load(
-                        f"{cwd}/sprites/faces/{f}/{sawman.group[f]}.png"
-                    ).convert_alpha(),
-                    (0, 0),
-                )
+                if isinstance(sawman.group[f], str):
+                    screen.blit(
+                        pygame.image.load(
+                            f"{cwd}/sprites/faces/{f}/{sawman.group[f]}.png"
+                        ).convert_alpha(),
+                        (0, 0),
+                    )
+            if self.dialog[sawman.dindex - 1][0]:
+                if not isinstance(self.dialog[sawman.dindex - 1][0][1], str):
+                    video = self.dialog[sawman.dindex - 1][0][1]
+                    video.play()
+                    video.draw_to(screen, (0, 0))
+                    print(video.current_frame)
+                    print(video.total_frames)
+                    if video.current_frame == video.total_frames:
+                        video.stop()
+                        video.release()
+                        sawman.dindex += 1
+
             if "cutscene" in sawman.group.keys():
                 music.pause()
             screen.blit(box, (0, 480 + ymov))
@@ -1277,7 +1306,7 @@ class Trader:
         self.shopman = pygame.image.load(shopman).convert()
         self.menu = menu
 
-    def textbox(self, sawman, inventory, i, ymov):
+    def textbox(self, sawman, inventory, mtogg, ymov):
         screen.blit(self.shopman, (0, 0))
         screen.blit(self.shopui, (0, ymov * 1.2))
         itemdex = 0
@@ -1295,7 +1324,7 @@ class Trader:
                     itemtext.get_rect(topleft=(750, 50 + (60 * itemdex))).collidepoint(
                         mpos
                     )
-                    and sawman.mtogg
+                    and mtogg
                 ):
                     itemtext = glow(
                         fontmed.render(
@@ -1313,7 +1342,7 @@ class Trader:
                                 sawman.money -= v
                             else:
                                 inventory.invbox[k] = 1
-                            sawman.mtogg = False
+                            mtogg = False
                         case (_, _, 1):
                             if k in inventory.invbox:
                                 if inventory.invbox[k] == 1:
@@ -1321,7 +1350,7 @@ class Trader:
                                 else:
                                     inventory.invbox[k] -= 1
                                     sawman.money += v * 0.9
-                            sawman.mtogg = False
+                            mtogg = False
 
                 screen.blit(itemtext, (750, 50 + (60 * itemdex) + ymov))
                 itemdex += 1
