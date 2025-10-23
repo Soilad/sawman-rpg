@@ -144,58 +144,58 @@ class Chara:
                 ],
             )
             # print(in_object)
-            print(self.xf)
-            if sawman.mask.overlap(wall, (-self.xf, -self.yf - 188)) or self.in_object:
-                for adj in (
-                    (1, 1),
-                    (-1, 1),
-                    (1, -1),
-                    (-1, -1),
-                ):
-                    pygame.draw.rect(
-                        screen,
-                        (255, 0, 0),
-                        pygame.Rect(
-                            5,
-                            5,
-                            -self.xf + (adj[0] * self.scale * speed),
-                            -self.yf - 188 + (adj[1] * self.scale * speed),
-                        ),
-                    )
-                    self.in_object = reduce(
-                        lambda x, y: x or y,
-                        [
-                            rect.sprite.get_rect(topleft=(rect.x, rect.y)).collidepoint(
-                                (
-                                    self.xf + 50 + (adj[0] * self.scale * speed),
-                                    self.yf
-                                    + y_offset
-                                    - (239 * self.scale)
-                                    + (adj[0] * self.scale * speed),
-                                )
-                            )
-                            and rect.collision
-                            for rect in ysort
-                        ],
-                    )
-                    if (
-                        not sawman.mask.overlap(
-                            wall,
-                            (
-                                -self.xf + (adj[0] * self.scale * speed),
-                                -self.yf - 188 + (adj[1] * self.scale * speed),
-                            ),
-                        )
-                        or self.in_object
-                    ):
-                        self.x, self.y = (
-                            self.xf - (adj[0] * self.scale * speed),
-                            self.yf - (adj[1] * self.scale * speed),
-                        )
+            # print(self.xf)
+            # if sawman.mask.overlap(wall, (-self.xf, -self.yf - 188)) or self.in_object:
+            #     for adj in (
+            #         (1, 1),
+            #         (-1, 1),
+            #         (1, -1),
+            #         (-1, -1),
+            #     ):
+            #         pygame.draw.rect(
+            #             screen,
+            #             (255, 0, 0),
+            #             pygame.Rect(
+            #                 5,
+            #                 5,
+            #                 -self.xf + (adj[0] * self.scale * speed),
+            #                 -self.yf - 188 + (adj[1] * self.scale * speed),
+            #             ),
+            #         )
+            #         self.in_object = reduce(
+            #             lambda x, y: x or y,
+            #             [
+            #                 rect.sprite.get_rect(topleft=(rect.x, rect.y)).collidepoint(
+            #                     (
+            #                         self.xf + 50 + (adj[0] * self.scale * speed),
+            #                         self.yf
+            #                         + y_offset
+            #                         - (239 * self.scale)
+            #                         + (adj[0] * self.scale * speed),
+            #                     )
+            #                 )
+            #                 and rect.collision
+            #                 for rect in ysort
+            #             ],
+            #         )
+            if (
+                not sawman.mask.overlap(
+                    wall,
+                    (
+                        -self.xf,
+                        -self.yf - 188,
+                    ),
+                )
+                or self.in_object
+            ):
+                self.x, self.y = (
+                    self.xf,
+                    self.yf,
+                )
 
-            else:
-                if not self.in_object:
-                    self.x, self.y = self.xf, self.yf
+            # else:
+            #     if not self.in_object:
+            #         self.x, self.y = self.xf, self.yf
 
             # if sawman.mask.overlap(wall, (-self.x, -self.y - 188)):
             #     self.x = (self.x + int(datetime_ist.strftime("%I%M")[:1:])) % 1280
@@ -1442,8 +1442,8 @@ class Button:
             return self.id
 
 
-x = 1280
-y = 720
+x = 640
+y = 360
 keys = pygame.key.get_pressed()
 sawman = Chara((x, y), f"{cwd}/sprites/sawman.png")
 zwei = Zweistein((x, y), f"{cwd}/sprites/zweistein.png")
