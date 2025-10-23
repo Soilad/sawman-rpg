@@ -8,7 +8,7 @@ levels = [
         [
             Obj(
                 f"{cwd}/sprites/npc/contractman.png",
-                (480 + 1280, 280 + 720),
+                (480, 280),
                 [{("Okaruns balls", 0): 3}],
                 [
                     [
@@ -33,7 +33,7 @@ levels = [
             ),
             Obj(
                 f"{cwd}/sprites/npc/contractman.png",
-                (800 + 1280, 300 + 720),
+                (800, 300 ),
                 [{("Okaruns balls", 0): -2}],
                 [
                     [
@@ -57,7 +57,7 @@ levels = [
                 ],
             ),
         ],
-        [Portal((1230 + 1280, 570 + 720), (100, 200), 1, (274, 208))],
+        [Portal((1230, 570), (100, 200), 1, (274, 208))],
         "",
     ),
     Room(

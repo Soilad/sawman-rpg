@@ -47,8 +47,8 @@ box = pygame.image.load(f"{cwd}/ui/textbox.png").convert_alpha()
 invui = pygame.image.load(f"{cwd}/ui/inventory.png").convert_alpha()
 invanim = range(0, 27)
 
-fontmed = pygame.font.Font(f"{cwd}/ui/Soilad.otf", 48)
-fontmin = pygame.font.Font(f"{cwd}/ui/Soilad.otf", 24)
+fontmed = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
+fontmin = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
 
 
 class Chara:
