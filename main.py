@@ -115,12 +115,11 @@ camera_x = camera_y = 0
 room.render(camera_x, camera_y)
 if room.h != 720:
     if sawman.dx or sawman.dy:
-        camera_x = camera_x - (sawman.xf - 640)
-        camera_y = camera_y - (sawman.yf - 360)
+        camera_x, camera_y = (camera_x, camera_y) - sawman.final_position + (640, 360)
     else:
         camera_x = camera_y = 0
 
-ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.y)
+ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
 pygame.display.update()
 
 keydown = False
@@ -157,15 +156,15 @@ while run:
                 keydown = False
                 match event.key:
                     case pygame.K_RETURN | pygame.K_z:
-                        sawman.dindex += 1
+                        sawman.dialog_index += 1
                         tbstart = tick
                     case pygame.K_TAB | pygame.K_c:
                         inventory.update()
                         inventory.tubes = []
                         pygame.mouse.set_visible(not pygame.mouse.get_visible())
-                        inventory.invshow = not inventory.invshow
-                        music.set_volume(mvol / (1 + inventory.invshow))
-                        inventory.a = tick
+                        inventory.SHOW_INVENTORY = not inventory.SHOW_INVENTORY
+                        music.set_volume(mvol / (1 + inventory.SHOW_INVENTORY))
+                        inventory.initial_open = tick
 
                     case pygame.K_F4:
                         pygame.display.toggle_fullscreen()
@@ -292,9 +291,10 @@ while run:
             if not battle.enemies:
                 room.render(camera_x, camera_y)
                 if room.h != 720:
-                    if sawman.dx or sawman.dy:
-                        camera_x = clamp(-(sawman.xf - 640), room.w / -2, room.w / 2)
-                        camera_y = clamp(-(sawman.yf - 360), room.h / -2, room.h / 2)
+                        if pygame.math.Vector2.length_squared(sawman.delta_position):
+                            camera_x, camera_y = (camera_x, camera_y) - sawman.final_position + (640, 360)
+                            camera_x = clamp(-(sawman.final_position.x - 640), room.w / -2, room.w / 2)
+                            camera_y = clamp(-(sawman.final_position.y - 360), room.h / -2, room.h / 2)
                 else:
                     camera_x = camera_y = 0
 
@@ -308,12 +308,12 @@ while run:
 
                         if keydown:
                             ysort = sorted(
-                                room.inters + [sawman, zwei], key=lambda r: r.y
+                                room.inters + [sawman, zwei], key=lambda r: r.current_position.y
                             )
                         if pygame.Rect.collidepoint(
-                            inter.rect, (sawman.xf + 50, sawman.yf)
+                            inter.rect, sawman.final_position + (50, 0)
                         ):
-                            if sawman.dindex:
+                            if sawman.dialog_index:
                                 sawman.stop = True
                                 inter.textbox(
                                     sawman,
@@ -323,7 +323,7 @@ while run:
                                 )
                                 interymov = (
                                     round(lerp(interymov, 300, (tick - tbstart) / 45))
-                                    if inter.diarender[sawman.dindex - 1] == "..."
+                                    if inter.diarender[sawman.dialog_index - 1] == "..."
                                     else round(
                                         lerp(interymov, 0, (tick - tbstart) / 45)
                                     )
@@ -335,7 +335,7 @@ while run:
                                     lerp(interymov, 300, (tick - tbstart) / 45)
                                 )
                 else:
-                    ysort = sorted([sawman, zwei], key=lambda r: r.y)
+                    ysort = sorted([sawman, zwei], key=lambda r: r.current_position.y)
 
             else:
                 # print(battle.enemies)
@@ -355,7 +355,7 @@ while run:
                     pygame.mouse.set_visible(not pygame.mouse.get_visible())
                     menu = True
             if room.dialog:
-                sawman.dindex = 1 if not sawman.dindex else sawman.dindex
+                sawman.dialog_index = 1 if not sawman.dialog_index else sawman.dialog_index
                 sawman.stop = True
                 roomymov = int(lerp(roomymov, 0, (tick - entertime) / 45))
                 room.textbox(tick - tbstart, roomymov)
@@ -368,7 +368,7 @@ while run:
 
             for portal in portals:
                 # print(sawman.x+50,sawman.y+239)
-                # print(sawman.dindex)
+                # print(sawman.dialog_index)
                 # print(pygame.mouse.get_pos())
                 # print("wazdorf")
                 if debug_mode and pygame.mouse.get_visible():
@@ -402,25 +402,25 @@ while run:
                     else:
                         portaldimensions = [(0, 0)]
 
-                if (
-                    pygame.Rect.collidepoint(
-                        portal.door, (sawman.x + 50, sawman.y + 230)
-                    )
-                    and not indoor
-                ):
-                    sawman.rindex = portal.changeroom()
-                    indoor = True
-                    room = levels[sawman.rindex]
-                    portals = room.portals
-                    entertime = tick
-                    ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.y)
-                    wall = room.mask
-                    if room.bgm and room.bgm != bgm:
-                        bgm = room.bgm
-                        music.play(pygame.mixer.Sound(f"{cwd}/music/{bgm}.mp3"), -1)
-                elif not pygame.Rect.collidepoint(
-                    portal.door, (sawman.x + 50, sawman.y + 230)
-                ):
+                print(indoor)
+                if pygame.Rect.collidepoint(portal.door, sawman.current_position + (50, 230)):
+                    if not indoor:
+                        sawman.current_position = zwei.current_position = portal.new_position
+                        zwei.positions_list = [portal.new_position]
+                        sawman.rindex = portal.rindex
+                        indoor = True
+                        room = levels[sawman.rindex]
+                        portals = room.portals
+                        entertime = tick
+                        print(*(r.current_position for r in room.inters))
+                        ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
+                        wall = room.mask
+                        if room.bgm and room.bgm != bgm:
+                            bgm = room.bgm
+                            music.play(pygame.mixer.Sound(f"{cwd}/music/{bgm}.mp3"), -1)
+                    else:
+                        indoor = False
+                else:
                     indoor = False
             if tick - entertime < 100 and room.bgm:
                 pullup(fontaliased, fontmin, screen, bgm, tick - entertime)
@@ -432,11 +432,11 @@ while run:
                 latertextfg[min(tick - laterdays, 100) // 30],
                 ((tick / 8) % 2, (tick / 2) % 3),
             )
-            # if fontaliased:
-            #     _apply_glow(screen, 1280, 720)
-            # # shader_bloom_fast1(screen, threshold_=400, smooth_=1)
-            # _add_glitch_effect(screen, 1, battle.enemies, 1280, 720)
-            # _apply_flicker(screen, tick)
+            if fontaliased:
+                _apply_glow(screen, 1280, 720)
+            # shader_bloom_fast1(screen, threshold_=400, smooth_=1)
+            _add_glitch_effect(screen, 1, battle.enemies, 1280, 720)
+            _apply_flicker(screen, tick)
             tick += 1
     pygame.time.Clock().tick(settings_json["FPS"])
     pygame.display.update()

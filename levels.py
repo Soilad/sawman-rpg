@@ -9,7 +9,7 @@ levels = [
             Obj(
                 f"{cwd}/sprites/npc/contractman.png",
                 (480, 280),
-                [{("Okaruns balls", 0): 3}],
+                [{("Okaruns balls", 0): 2}],
                 [
                     [
                         (("cutscene", "willi.mp4"), "NO WAY?!?!?!?"),
