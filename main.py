@@ -4,6 +4,8 @@ from pygame.math import clamp, lerp
 from enum import Enum, auto, IntEnum
 from PygameShader.shader import chromatic
 from classes import (
+    Room,
+    player_vars,
     sawman,
     zwei,
     battle,
@@ -34,92 +36,94 @@ with open("settings.json") as json_data:
     settings_json = load(json_data)
 
 
-portaldimensions = [(0, 0)]
-pw, ph = portaldimensions[0]
+portal_size: list[tuple[int,int]] = [(0, 0)]
+pw, ph = portal_size[0]
 
 
-tbstart = 0
-interymov = 600
-roomymov = 600
+initial_textbox_tick: int = 0
+textbox_y: int = 600
 print(nighttime.strftime("%H %m %p"))
 
-box = pygame.image.load(f"{cwd}/ui/textbox.png").convert_alpha()
-invui = pygame.image.load(f"{cwd}/ui/inventory.png").convert_alpha()
-invanim = range(0, 27)
+textbox_surface: pygame.Surface = pygame.image.load(f"{cwd}/ui/textbox.png").convert_alpha()
+inventory_surface: pygame.Surface = pygame.image.load(f"{cwd}/ui/inventory.png").convert_alpha()
 
-fontmed = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
-fontmin = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
+font_medium = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
+font_small = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
 
 keys = pygame.key.get_pressed()
 
-tick = mscroll = indoor = laterdays = 0
+tick: int = 0
+in_door: bool = False
+laterdays: int = 0
 
-
-latertextbg = (
-    fontmed.render("Later days.", fontaliased, (0, 0, 0)),
-    fontmed.render("Later days..", fontaliased, (0, 0, 0)),
-    fontmed.render("Later days...", fontaliased, (0, 0, 0)),
-    fontmed.render("", fontaliased, (0, 0, 0)),
+latertextbg: tuple[pygame.Surface] = (
+    font_medium.render("Later days.", fontaliased, (0, 0, 0)),
+    font_medium.render("Later days..", fontaliased, (0, 0, 0)),
+    font_medium.render("Later days...", fontaliased, (0, 0, 0)),
+    font_medium.render("", fontaliased, (0, 0, 0)),
 )
 latertextfg = (
-    fontmed.render("Later days.", fontaliased, (255, 255, 255)),
-    fontmed.render("Later days..", fontaliased, (255, 255, 255)),
-    fontmed.render("Later days...", fontaliased, (255, 255, 255)),
-    fontmed.render("", fontaliased, (255, 255, 255)),
+   font_medium.render("Later days.", fontaliased, (255, 255, 255)),
+   font_medium.render("Later days..", fontaliased, (255, 255, 255)),
+   font_medium.render("Later days...", fontaliased, (255, 255, 255)),
+   font_medium.render("", fontaliased, (255, 255, 255)),
 )
-run = True
-menubg = pygame.image.load(f"{cwd}/ui/bg{nighttime.strftime('%p').lower()}.png")
-tab = [1]
+run: bool = True
+menu_bg: pygame.Surface = pygame.image.load(f"{cwd}/ui/bg{nighttime.strftime('%p').lower()}.png")
+tab = [1] # tf is tab
 
-tick = 0
-mscroll = bscroll = 0
-mtogg = btogg = False
+tick: int = 0
+m_scroll: int = 0
+b_scroll: int = 0
+m_togg: bool = False
+b_togg: bool = False
 
-menubuttons = [
+menu_buttons: tuple[Button] = (
     Button("Start Game", (200, 200), (160, 40), 5),
     Button("Continue Game", (200, 250), (160, 40), 5),
     Button("Settings", (200, 300), (160, 40), 5),
     Button("Credits", (200, 350), (160, 40), 5),
     Button("Exit", (200, 400), (160, 40), 5),
-]
+)
 
-settingsbuttons = [
+settings_buttons: tuple[Button] = (
     Button("UI Size", (200, 200), (160, 40), 5),
     Button("FPS", (200, 250), (160, 40), 5),
     Button("Sound Volume", (200, 300), (160, 40), 5),
     Button("Music Volume", (200, 350), (160, 40), 5),
     Button("Scroll Invert", (200, 400), (160, 40), 5),
     Button("Exit", (200, 450), (160, 40), 5),
-]
-night = pygame.image.load(f"{cwd}/ui/night.png").convert()
+)
+
+night: pygame.Surface = pygame.image.load(f"{cwd}/ui/night.png").convert()
 
 
-room = levels[sawman.rindex]
-portals = room.portals
-wall = room.mask
+current_room: Room = levels[player_vars.room_index]
+portals = current_room.portals
+wall = current_room.mask
 aaa = list(
     dict.fromkeys(
         [
             y
-            for y in [x.bgm for x in levels][: sawman.rindex :]
+            for y in [x.bgm for x in levels][: player_vars.room_index :]
             if not isinstance(y, int)
         ]
     )
 )
-bgm = room.bgm if not isinstance(room.bgm, int) else aaa[-1]
+bgm = current_room.bgm if not isinstance(current_room.bgm, int) else aaa[-1]
 music.play(pygame.mixer.Sound(f"{cwd}/music/{bgm}.mp3"), -1)
 entertime = tick
 if tick - entertime < 10:
-    pullup(fontaliased, fontmin, screen, bgm, tick - entertime)
+    pullup(fontaliased, font_small, screen, bgm, tick - entertime)
 camera_x = camera_y = 0
-room.render(camera_x, camera_y)
-if room.h != 720:
+current_room.render(camera_x, camera_y)
+if current_room.h != 720:
     if sawman.dx or sawman.dy:
         camera_x, camera_y = (camera_x, camera_y) - sawman.final_position + (640, 360)
     else:
         camera_x = camera_y = 0
 
-ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
+ysort = sorted(current_room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
 pygame.display.update()
 
 keydown = False
@@ -129,37 +133,38 @@ music.set_volume(mvol)
 
 while run:
     if (current_menu == Menu.MAIN_MENU) or (current_menu == Menu.SETTINGS):
-        screen.blit(menubg, (0, 0))
+        screen.blit(menu_bg, (0, 0))
     mpos = pygame.mouse.get_pos()
     keys = pygame.key.get_pressed()
-    btogg = False
+    b_togg = False
 
     for event in pygame.event.get():
         match event.type:
             case pygame.QUIT:
                 run = False
             case pygame.MOUSEWHEEL:
-                bscroll = settings_json["Scroll Invert"] * event.y
-                mscroll = min(
-                    max(mscroll - scrollinvert * event.y, 0),
-                    len(inventory.invbox.copy()) - 1,
+                b_scroll = settings_json["Scroll Invert"] * event.y
+                m_scroll = min(
+                    max(m_scroll - scrollinvert * event.y, 0),
+                    len(inventory.inventory_dict.copy()) - 1,
                 )
-                btogg = True
+                b_togg = True
             case pygame.MOUSEBUTTONDOWN:
-                mscroll = 0
-                btogg = True
+                m_scroll = 0
+                b_togg = True
             case pygame.MOUSEBUTTONUP:
-                mscroll = 0
-                btogg = False
-                mtogg = True
+                m_scroll = 0
+                b_togg = False
+                m_togg = True
             case pygame.KEYUP:
                 keydown = False
                 match event.key:
                     case pygame.K_RETURN | pygame.K_z:
-                        sawman.dialog_index += 1
-                        tbstart = tick
+                        player_vars.dialog_index += 1
+                        initial_textbox_tick = tick
                     case pygame.K_TAB | pygame.K_c:
-                        inventory.update()
+                        inventory.update_items()
+                        inventory.update_health(player_vars)
                         inventory.tubes = []
                         pygame.mouse.set_visible(not pygame.mouse.get_visible())
                         inventory.SHOW_INVENTORY = not inventory.SHOW_INVENTORY
@@ -201,14 +206,14 @@ while run:
 
     match current_menu:
         case Menu.MAIN_MENU:
-            for i in menubuttons:
-                if i.draw(screen, mpos, btogg, tab, settings_json):
-                    tab = i.draw(screen, mpos, btogg, tab, settings_json)
+            for i in menu_buttons:
+                if i.draw(screen, mpos, b_togg, tab, settings_json):
+                    tab = i.draw(screen, mpos, b_togg, tab, settings_json)
 
             match tab:
                 case "Start Game":
                     current_menu = Menu.GAME
-                    mtogg = False
+                    m_togg = False
                     tab = 0
                     pygame.mouse.set_visible(False)
 
@@ -236,7 +241,7 @@ while run:
                                 zwei.load(eval(savedata))
                     except FileNotFoundError:
                         pass
-                    mtogg = False
+                    m_togg = False
                     tab = 0
                     pygame.mouse.set_visible(False)
 
@@ -247,26 +252,26 @@ while run:
                     pygame.quit()
             tab = 0
         case Menu.SETTINGS:
-            for i in settingsbuttons:
-                if i.draw(screen, mpos, btogg, tab, settings_json):
-                    tab = i.draw(screen, mpos, btogg, tab, settings_json)
+            for i in settings_buttons:
+                if i.draw(screen, mpos, b_togg, tab, settings_json):
+                    tab = i.draw(screen, mpos, b_togg, tab, settings_json)
             match tab:
                 case "Scroll Invert":
                     settings_json["Scroll Invert"] *= -1
                 case "UI Size":
-                    settings_json["UI Size"] += bscroll * (
+                    settings_json["UI Size"] += b_scroll * (
                         1 + 9 * keys[pygame.K_LSHIFT]
                     )
                     settings_json["UI Size"] = clamp(settings_json["UI Size"], 14, 40)
                 case "Sound Volume":
-                    settings_json["Sound Volume"] += bscroll * (
+                    settings_json["Sound Volume"] += b_scroll * (
                         1 + 9 * keys[pygame.K_LSHIFT]
                     )
                     settings_json["Sound Volume"] = clamp(
                         settings_json["Sound Volume"], 0, 100
                     )
                 case "Music Volume":
-                    settings_json["Music Volume"] += bscroll * (
+                    settings_json["Music Volume"] += b_scroll * (
                         1 + 9 * keys[pygame.K_LSHIFT]
                     )
                     settings_json["Music Volume"] = clamp(
@@ -276,7 +281,7 @@ while run:
                     pygame.mixer.music.set_volume(settings_json["Music Volume"] / 100)
 
                 case "FPS":
-                    settings_json["FPS"] += bscroll * (1 + 9 * keys[pygame.K_LSHIFT])
+                    settings_json["FPS"] += b_scroll * (1 + 9 * keys[pygame.K_LSHIFT])
                     settings_json["FPS"] = clamp(settings_json["FPS"], 12, 999)
 
                 case "Exit":
@@ -289,57 +294,55 @@ while run:
 
         case Menu.GAME:
             if not battle.enemies:
-                room.render(camera_x, camera_y)
-                if room.h != 720:
+                current_room.render(camera_x, camera_y)
+                if current_room.h != 720:
                         if pygame.math.Vector2.length_squared(sawman.delta_position):
                             camera_x, camera_y = (camera_x, camera_y) - sawman.final_position + (640, 360)
-                            camera_x = clamp(-(sawman.final_position.x - 640), room.w / -2, room.w / 2)
-                            camera_y = clamp(-(sawman.final_position.y - 360), room.h / -2, room.h / 2)
+                            camera_x = clamp(-(sawman.final_position.x - 640), current_room.w // -2, current_room.w // 2)
+                            camera_y = clamp(-(sawman.final_position.y - 360), current_room.h // -2, current_room.h // 2)
                 else:
                     camera_x = camera_y = 0
 
                 for item in ysort:
                     item.move(
-                        room, keys, tick, wall, entertime, ysort, (camera_x, camera_y)
+                        player_vars, current_room, keys, tick, wall, entertime, ysort, (camera_x, camera_y)
                     )
-                if room.inters:
-                    for inter in room.inters:
+
+                if debug_mode:
+                    pygame.draw.circle(screen, (255, 127, 0), (sawman.current_position + (50 * sawman.scale, 239 - (125 * sawman.scale))), 4)
+                if current_room.inters:
+                    for inter in current_room.inters:
                         # pygame.draw.rect(screen, (255,0,0),inter.rect)
 
                         if keydown:
                             ysort = sorted(
-                                room.inters + [sawman, zwei], key=lambda r: r.current_position.y
+                                current_room.inters + [sawman, zwei], key=lambda r: r.current_position.y
                             )
                         if pygame.Rect.collidepoint(
                             inter.rect, sawman.final_position + (50, 0)
                         ):
-                            if sawman.dialog_index:
+                            if player_vars.dialog_index:
                                 sawman.stop = True
                                 inter.textbox(
-                                    sawman,
+                                    textbox_surface,
+                                    player_vars,
                                     inventory,
-                                    int((tick - tbstart) * 1.2),
-                                    interymov,
+                                    b_togg,
+                                    int((tick - initial_textbox_tick) * 1.2),
+                                    textbox_y,
                                 )
-                                interymov = (
-                                    round(lerp(interymov, 300, (tick - tbstart) / 45))
-                                    if inter.diarender[sawman.dialog_index - 1] == "..."
-                                    else round(
-                                        lerp(interymov, 0, (tick - tbstart) / 45)
-                                    )
-                                )
-
+                                textbox_y = round(lerp(textbox_y, 300 if inter.dialog[player_vars.dialog_index - 1][1] == "..." else 0, (tick - initial_textbox_tick) / 45))
                             else:
                                 sawman.stop = False
-                                interymov = round(
-                                    lerp(interymov, 300, (tick - tbstart) / 45)
+                                textbox_y = round(
+                                    lerp(textbox_y, 300, (tick - initial_textbox_tick) / 45)
                                 )
                 else:
                     ysort = sorted([sawman, zwei], key=lambda r: r.current_position.y)
 
             else:
                 # print(battle.enemies)
-                battle.render(sawman, tick, keys, bgm, inventory)
+                battle.render(player_vars, tick, keys, bgm, inventory)
                 screen.blit(
                     chromatic(
                         screen,
@@ -350,44 +353,44 @@ while run:
                     ),
                     (0, 0),
                 )
-                if not (sawman.shealth or sawman.zhealth):
+                if not (player_vars.s_health or player_vars.z_health):
                     game = False
                     pygame.mouse.set_visible(not pygame.mouse.get_visible())
                     menu = True
-            if room.dialog:
-                sawman.dialog_index = 1 if not sawman.dialog_index else sawman.dialog_index
+            if current_room.dialog:
+                player_vars.dialog_index = 1 if not player_vars.dialog_index else player_vars.dialog_index
                 sawman.stop = True
-                roomymov = int(lerp(roomymov, 0, (tick - entertime) / 45))
-                room.textbox(tick - tbstart, roomymov)
-            elif not room.dialog:
+                textbox_y = int(lerp(textbox_y, 0, (tick - entertime) / 45))
+                current_room.textbox(player_vars, tick - initial_textbox_tick, textbox_y)
+            elif not current_room.dialog:
                 sawman.stop = False
-                roomymov = 600
-            if nighttime.strftime("%p") == "PM" and room.outside and not battle.enemies:
+                # textbox_y = 600
+            if nighttime.strftime("%p") == "PM" and current_room.outside and not battle.enemies:
                 screen.blit(night, (0, 0), special_flags=pygame.BLEND_SUB)
-            inventory.open(sawman, mscroll, mtogg, tick)
+            inventory.open(player_vars, m_scroll, b_togg, tick)
 
             for portal in portals:
                 # print(sawman.x+50,sawman.y+239)
-                # print(sawman.dialog_index)
+                # print(player_vars.dialog_index)
                 # print(pygame.mouse.get_pos())
                 # print("wazdorf")
                 if debug_mode and pygame.mouse.get_visible():
                     pygame.draw.rect(screen, (255, 0, 0), portal.door)
 
                     if pygame.mouse.get_pressed() == (1, 0, 0):
-                        portaldimensions.append(pygame.mouse.get_pos())
-                        print("npc stuff", portaldimensions[1], portaldimensions[-1])
+                        portal_size.append(pygame.mouse.get_pos())
+                        print("npc stuff", portal_size[1], portal_size[-1])
                         pos = (
-                            min(portaldimensions[1][0], portaldimensions[-1][0]),
-                            min(portaldimensions[1][1], portaldimensions[-1][1]),
+                            min(portal_size[1][0], portal_size[-1][0]),
+                            min(portal_size[1][1], portal_size[-1][1]),
                         )
-                        pw = abs(portaldimensions[-1][0] - portaldimensions[1][0])
-                        ph = abs(portaldimensions[-1][1] - portaldimensions[1][1])
+                        pw = abs(portal_size[-1][0] - portal_size[1][0])
+                        ph = abs(portal_size[-1][1] - portal_size[1][1])
                         print(
                             "portal stuff",
                             (
-                                portaldimensions[1][0] + (pw / 2),
-                                portaldimensions[1][1] + (ph / 2),
+                                portal_size[1][0] + (pw / 2),
+                                portal_size[1][1] + (ph / 2),
                             ),
                             (
                                 pw,
@@ -400,30 +403,30 @@ while run:
                             pygame.Rect(pos, (pw, ph)),
                         )
                     else:
-                        portaldimensions = [(0, 0)]
+                        portal_size = [(0, 0)]
 
-                print(indoor)
+                # print(in_door)
                 if pygame.Rect.collidepoint(portal.door, sawman.current_position + (50, 230)):
-                    if not indoor:
-                        sawman.current_position = zwei.current_position = portal.new_position
+                    if not in_door:
+                        player_vars.current_position = sawman.current_position = zwei.current_position = portal.new_position
                         zwei.positions_list = [portal.new_position]
-                        sawman.rindex = portal.rindex
-                        indoor = True
-                        room = levels[sawman.rindex]
-                        portals = room.portals
+                        player_vars.room_index = portal.room_index
+                        in_door = True
+                        current_room = levels[player_vars.room_index]
+                        portals = current_room.portals
                         entertime = tick
-                        print(*(r.current_position for r in room.inters))
-                        ysort = sorted(room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
-                        wall = room.mask
-                        if room.bgm and room.bgm != bgm:
-                            bgm = room.bgm
+                        print(*(r.current_position for r in current_room.inters))
+                        ysort = sorted(current_room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
+                        wall = current_room.mask
+                        if current_room.bgm and current_room.bgm != bgm:
+                            bgm = current_room.bgm
                             music.play(pygame.mixer.Sound(f"{cwd}/music/{bgm}.mp3"), -1)
                     else:
-                        indoor = False
+                        in_door = False
                 else:
-                    indoor = False
-            if tick - entertime < 100 and room.bgm:
-                pullup(fontaliased, fontmin, screen, bgm, tick - entertime)
+                    in_door = False
+            if tick - entertime < 100 and current_room.bgm:
+                pullup(fontaliased, font_small, screen, bgm, tick - entertime)
             screen.blit(
                 latertextbg[min(tick - laterdays, 100) // 30],
                 (((tick - 3) / 8) % 2, ((tick - 3) / 4) % 3),

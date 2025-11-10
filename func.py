@@ -48,12 +48,24 @@ def shadow(surface, thicc, color):
     return a
 
 
-def clip(surface, x, y):
-    handle_surface = surface.copy()
-    clipRect = Rect(x, y, 100, 239)
-    handle_surface.set_clip(clipRect)
-    image = surface.subsurface(handle_surface.get_clip())
-    return image.copy().convert_alpha()
+# def clip(surface, x, y):
+#     handle_surface = surface.copy()
+#     clipRect = Rect(x, y, 100, 239)
+#     handle_surface.set_clip(clipRect)
+#     image = surface.subsurface(handle_surface.get_clip())
+#     return image.copy().convert_alpha()
+
+def clip(surface: Surface , sprite_width: int, sprite_height: int) -> dict[tuple[int,int]:Surface]:
+    spritesheet_dict: dict = {}
+    sheet_width, sheet_height = surface.get_size()
+    for x in range(sheet_width//sprite_width + 1):
+        for y in range(sheet_height//sprite_height + 1):
+            clipRect = Rect(x*sprite_width, y*sprite_height, sprite_width, sprite_height)
+            surface.set_clip(clipRect)
+            image = surface.subsurface(surface.get_clip())
+            spritesheet_dict[(x,y)] = image.convert_alpha()
+    return spritesheet_dict
+
 
 
 def enemclip(surface, pos):
@@ -94,21 +106,18 @@ def giveable(inventory: dict[tuple[str, int], int], items_given: dict[tuple[str,
     # return True
     return all([item_count + inventory.get(item, 0) >= 0 for item, item_count in items_given.items()])
 
-def give_items(inventory: dict[tuple, int], items_given: dict[tuple, int]):
+def give_items(inventory: dict[tuple[str, int]: int], items_given: dict[tuple[str, int]: int]):
     for item in items_given:
         if inventory.get(item, 0) + items_given[item] > 0:
             inventory[item] = inventory.get(item, 0) + items_given[item]
-            # del inventory[item]
+        else:
+            del inventory[item]
 
-def pullup(fontaliased, fontmin, screen, bgm, initial_tick):
-    screen.blit(
-        fontmin.render(f": {bgm}".replace("_", " "), fontaliased, (0, 0, 0)),
-        (80 - (initial_tick**1.3), 50),
-    )
-    screen.blit(
-        fontmin.render(f": {bgm}".replace("_", " "), fontaliased, (255, 255, 255)),
-        (79 - (initial_tick**1.3), 51),
-    )
+def pullup(fontaliased, font_small, screen, bgm, initial_tick) -> None:
+    text = f": {bgm.replace("_", " ")}"
+    x_position = (initial_tick**1.3)
+    screen.blit(font_small.render(text, fontaliased, (0, 0, 0)), (80 - x_position, 50))
+    screen.blit(font_small.render(text, fontaliased, (255, 255, 255)), (79 - x_position, 51))
 
 
 def _apply_glow(screen, w, h):

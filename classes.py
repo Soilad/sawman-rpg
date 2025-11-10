@@ -1,8 +1,8 @@
 import pygame
 from os import getcwd
 from datetime import datetime
-from pygame.image import save
-from pygamevideo import Video
+# from pygame.image import save
+# from pygamevideo import Video
 from pygame.math import lerp, clamp
 import pytz
 from functools import reduce
@@ -25,6 +25,7 @@ from func import (
 from recipies import recipies
 from settings import fps, fontaliased, sfxvol, debug_mode
 from json import load
+from collections.abc import Callable
 
 with open("settings.json") as json_data:
     uiscale = int(load(json_data)["UI Size"] / 14)
@@ -53,51 +54,63 @@ invanim = range(0, 27)
 fontmed = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
 fontmin = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
 
+# @dataclass
+class Player_Vars:
+    z_health: int = 100
+    s_health: int = 100
+    walking_frame: int = 0 
+    walking_direction: int = 0
+    money: int = 0
+    dialog_index: int = 0
+    room_index: int = 0
+    group: dict = {}
+    inenem: bool = False
+    current_position: pygame.math.Vector2 = pygame.math.Vector2(640, 360)
+
 
 class Chara:
-    collision = in_object = False
-    zhealth = shealth = 100
+    collision: bool = False
+    in_object: bool = False
     delta_position = pygame.math.Vector2()
-    frame = money = dir = dialog_index = rindex = 0
-    scale = 1
-    stop = inenem = False
+    scale: int = 1
+    stop: bool = False
     mask = pygame.mask.Mask((50, 50), fill=True)
-    group = {}
+    current_position: pygame.math.Vector2 = pygame.math.Vector2(640, 360)
 
     def __init__(self, pos, sprite):
-        self.s_spritesheet = pygame.image.load(sprite).convert_alpha()
+        self.s_spritesheet: dict[tuple[int,int]:pygame.Surface] = clip(pygame.image.load(sprite).convert_alpha(), 100, 239)
         self.initial_position: pygame.math.Vector2 = pos
         self.final_position: pygame.math.Vector2 = pos
-        self.current_position: pygame.math.Vector2 = pos
-
-    def lock(self):
-        self.current_position = pygame.math.Vector2(640, 360)
+    def lock(self, player_vars):
+        player_vars.current_position = self.current_position = pygame.math.Vector2(640, 360)
 
     def save(self):
         return (
-            self.rindex,
-            self.dialog_index,
+
             self.current_position,
-            self.money,
-            self.zhealth,
-            self.shealth,
+            # self.room_index,
+            # self.dialog_index,
+            # self.money,
+            # self.z_health,
+            # self.s_health,
         )
 
     def load(self, a):
         (
-            self.rindex,
-            self.dialog_index,
             self.current_position,
-            self.money,
-            self.zhealth,
-            self.shealth,
+            # self.room_index,
+            # self.dialog_index,
+            # self.money,
+            # self.z_health,
+            # self.s_health,
         ) = a
 
-    def move(self, room, keys, tick, wall, entertime, ysort, offset):
-        y_offset = 400
-        speed = 12 << keys[pygame.K_LSHIFT]
+    def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
+        # y_offset: int = 400
+        self.current_position = player_vars.current_position
+        speed: int = 12 << keys[pygame.K_LSHIFT]
         if debug_mode:
-            self.dialog_index += keys[pygame.K_LCTRL]
+            player_vars.dialog_index += keys[pygame.K_LCTRL]
         self.initial_position = self.current_position
         self.delta_position = pygame.math.Vector2(
             (
@@ -114,23 +127,23 @@ class Chara:
             ),
         )
         if self.delta_position.length_squared() and not self.stop and not pygame.mouse.get_visible():
-            self.dialog_index = 0
-            self.group = dict()
+            player_vars.dialog_index = 0
+            player_vars.group = {}
             match self.delta_position.x, self.delta_position.y:
                 case (1, _):
-                    self.dir = 0
-                case (-1, _):
-                    self.dir = 3
+                    player_vars.walking_direction = 0
                 case (_, 1):
-                    self.dir = 1
+                    player_vars.walking_direction = 1
                 case (_, -1):
-                    self.dir = 2
-            self.frame = (tick * 2) // speed % 4
+                    player_vars.walking_direction = 2
+                case (-1, _):
+                    player_vars.walking_direction = 3
+            player_vars.walking_frame = (tick * 2) // speed % 4
             self.final_position.x, self.final_position.y = (
-                clamp(self.current_position.x + (self.delta_position.x * speed * self.scale), 0, room.w - 100),
-                clamp(self.current_position.y + (self.delta_position.y * speed * self.scale), 0, room.h - 239),
+                clamp(player_vars.current_position.x + (self.delta_position.x * speed * self.scale), 0, room.w - 100),
+                clamp(player_vars.current_position.y + (self.delta_position.y * speed * self.scale), 0, room.h - 239),
             )
-            self.final_position = self.current_position + ( speed * self.scale * (self.delta_position))
+            self.final_position = player_vars.current_position + ( speed * self.scale * (self.delta_position))
 
             # for i in ysort:
             #     pygame.draw.rect(
@@ -141,7 +154,7 @@ class Chara:
                 lambda x, y: x or y,
                 [
                     rect.sprite.get_rect(topleft=rect.current_position).collidepoint(
-                        self.final_position + (50, y_offset - (239 * self.scale))
+                        self.final_position + (50 * self.scale, 239 - (125 * self.scale))
                     )
                     and rect.collision
                     for rect in ysort
@@ -183,14 +196,14 @@ class Chara:
             #             ],
             #         )
             if (
-                not sawman.mask.overlap(
+                not self.mask.overlap(
                     wall,
                     -1 * self.final_position - (0, 188)
                     ,
                 )
                 or self.in_object
             ):
-                self.current_position = self.final_position
+                player_vars.current_position = self.current_position = self.final_position
             # else:
             #     if not self.in_object:
             #         self.x, self.y = self.xf, self.yf
@@ -199,16 +212,13 @@ class Chara:
             #     self.x = (self.x + int(datetime_ist.strftime("%I%M")[:1:])) % 1280
             #     self.y = (self.y + int(datetime_ist.strftime("%I%M")[:1:-1])) % 720
         else:
-            self.frame = 0
+            player_vars.walking_frame = 0
 
-        self.scale = self.current_position.y / 360 if room.outside else 1
-        self.sprite = pygame.transform.scale(
-            clip(self.s_spritesheet, 100 * self.frame, 239 * self.dir),
-            (100 * self.scale, 239 * self.scale),
-        )
+        self.scale = player_vars.current_position.y / 360 if room.outside else 1
+        self.sprite = pygame.transform.scale(self.s_spritesheet[(player_vars.walking_frame, player_vars.walking_direction)], (100 * self.scale, 239 * self.scale))
         screen.blit(
             self.sprite,
-            self.current_position + offset + (0, (239 - 239 * self.scale)),
+            player_vars.current_position + offset + (0, (239 - 239 * self.scale)),
         )
         # pygame.draw.circle(
         #     screen,
@@ -222,7 +232,7 @@ class Zweistein:
     collision = False
 
     def __init__(self, position, sprite):
-        self.z_spritesheet = pygame.image.load(sprite).convert_alpha()
+        self.z_spritesheet: dict[tuple[int, int]: pygame.Surface] = clip(pygame.image.load(sprite).convert_alpha(),100,239)
         self.positions_list: list[pygame.math.Vector2] = [position]
         self.current_position: pygame.math.Vector2 = position
 
@@ -232,16 +242,14 @@ class Zweistein:
     def load(self, a):
         self.positions_list, self.current_position = a
 
-    def move(self, room, keys, tick, wall, entertime, ysort, offset):
-        if self.positions_list[-1] != sawman.current_position:
-            self.positions_list.append(sawman.current_position)
-            if len(self.positions_list) > 16:
+    def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
+        if self.positions_list[-1] != player_vars.current_position:
+            self.positions_list.append(player_vars.current_position)
+            if len(self.positions_list) > 8:
                 self.current_position = self.positions_list.pop(0)
         self.scale = self.current_position.y / 360 if room.outside else 1
-        self.sprite = pygame.transform.scale(
-            clip(self.z_spritesheet, 100 * sawman.frame, 239 * sawman.dir),
-            (100 * self.scale, 239 * self.scale),
-        )
+
+        self.sprite = pygame.transform.scale(self.z_spritesheet[(player_vars.walking_frame, player_vars.walking_direction)], (100 * self.scale, 239 * self.scale))
         screen.blit(
             self.sprite,
             self.current_position + offset + (0, (239 - 239 * self.scale)),
@@ -252,95 +260,102 @@ class Inventory:
     info: str = ""
     result: str = ""
     tubes: list = []
-    zhands: str = ""
-    shands: str = ""
-    nonetext = fontmed.render("", fontaliased, (0, 0, 0))
+    z_hands: str = ""
+    s_hands: str = ""
+    z_health_text: pygame.Surface = fontmed.render("", fontaliased, (0, 0, 0))
+    s_health_text: pygame.Surface = fontmed.render("", fontaliased, (0, 0, 0))
+    # wtf is up with the tube texts
+    nonetext: pygame.Surface = fontmed.render("", fontaliased, (0, 0, 0))
     tubetext1 = tubetext2 = nonetext
-    initial_open = 0
-    ymov = -720
-    middlemouse = True
+    # wait its not even a tube its a beaker
+    initial_open: int = 0 
+    y_position: int = -720
+    middlemouse: bool = True
     SHOW_INVENTORY: bool = False
 
-    def __init__(self, item):
-        self.invbox = item
-        self.invnames = [x[0] for x in self.invbox]
-        self.renderbox = {
+    def __init__(self, inventory_dict):
+        self.inventory_dict: dict[tuple[str,int]: int] = inventory_dict 
+        # self.inventory_items = (x[0] for x in self.inventory_dict)
+        self.inventory_text = {
             item_tuple: fontmed.render(f"{quantity}: {item_tuple[0]}", fontaliased, (255, 255, 255))
-            for item_tuple, quantity in self.invbox.items()
+            for item_tuple, quantity in self.inventory_dict.items()
         }
 
     def save(self):
-        return self.invbox, self.zhands, self.shands
+        return self.inventory_dict, self.z_hands, self.s_hands
 
     def load(self, save_inventory):
-        self.invbox, self.zhands, self.shands = save_inventory
+        self.inventory_dict, self.z_hands, self.s_hands = save_inventory
 
-    def update(self):
+    def update_items(self):
         self.renderbox = {
             item_tuple: fontmed.render(f"{quantity}: {item_tuple[0]}", fontaliased, (255, 255, 255))
-            for item_tuple, quantity in self.invbox.items()
+            for item_tuple, quantity in self.inventory_dict.items()
         }
 
-    def open(self, sawman, mscroll, mtogg, tick):
+    def update_health(self, player_vars):
+        self.z_health_text = fontmin.render(f"Health: {int(player_vars.z_health)}", fontaliased, (255, 255, 255))
+        self.s_health_text = fontmin.render(f"Health: {int(player_vars.s_health)}", fontaliased, (255, 255, 255))
+
+    # def update_money(self):
+    # make this a method
+
+    def open(self, player_vars, mscroll, b_togg,  tick):
         # print(self.invbox)
         # print(self.renderbox)
         delta_open: int = tick - self.initial_open
-        self.ymov = round(
-            lerp(self.ymov, (not self.SHOW_INVENTORY) * -720, delta_open / 45)
+        self.y_position = round(
+            lerp(self.y_position, (not self.SHOW_INVENTORY) * -720, delta_open / 45)
         )
-        if self.ymov > -600:
-            self.invnames = [x[0] for x in self.invbox]
+        if self.y_position > -600:
+            # self.invnames = [x[0] for x in self.invbox]
             mpos = pygame.mouse.get_pos()
-            mouses = pygame.mouse.get_pressed() if self.SHOW_INVENTORY else (0, 0, 0)
+            mouses: tuple[int, int, int] = pygame.mouse.get_pressed() if self.SHOW_INVENTORY else (0, 0, 0)
 
-            screen.blit(invui, (0, 0 + self.ymov))
+            screen.blit(invui, (0, 0 + self.y_position))
             screen.blit(
-                fontmin.render(
-                    f"Health: {int(sawman.shealth)}", fontaliased, (255, 255, 255)
-                ),
-                (180, 145 + self.ymov),
+                self.s_health_text,
+                (180, 145 + self.y_position),
             )
             screen.blit(
-                fontmin.render(
-                    f"Health: {int(sawman.zhealth)}", fontaliased, (255, 255, 255)
-                ),
-                (180, 575 + self.ymov),
+                self.z_health_text,
+                (180, 575 + self.y_position),
             )
-            if self.zhands:
+            if self.z_hands:
                 screen.blit(
                     glow(
-                        fontmin.render(self.zhands[0], fontaliased, (255, 0, 127)),
+                        fontmin.render(self.z_hands[0], fontaliased, (255, 0, 127)),
                         5,
                         (255, 0, 127),
                     ),
-                    (100, 625 + self.ymov),
+                    (100, 625 + self.y_position),
                 )
-            if self.shands:
+            if self.s_hands:
                 screen.blit(
                     glow(
-                        fontmin.render(self.shands[0], fontaliased, (255, 127, 0)),
+                        fontmin.render(self.s_hands[0], fontaliased, (255, 127, 0)),
                         5,
                         (255, 127, 0),
                     ),
-                    (100, 215 + self.ymov),
+                    (100, 215 + self.y_position),
                 )
             screen.blit(
                 fontmin.render(
                     datetime_ist.strftime("%I:%M %p"), fontaliased, (255, 255, 255)
                 ),
-                (60, 300 + self.ymov),
+                (60, 300 + self.y_position),
             )
             screen.blit(
-                fontmin.render(f"௹:{sawman.money}", fontaliased, (255, 255, 255)),
-                (60, 375 + self.ymov),
+                fontmin.render(f"௹:{player_vars.money}", fontaliased, (255, 255, 255)),
+                (60, 375 + self.y_position),
             )
-            item_index = 0
-            invbox_copy = self.invbox.copy()
-            for k, v in list(invbox_copy.items())[
-                mscroll : min(len(invbox_copy), 11 + mscroll)
+            item_index: int = 0
+            inventory_dict_copy: dict[tuple[str, int]: int] = self.inventory_dict.copy()
+            for item, quantity in list(inventory_dict_copy.items())[
+                mscroll : min(len(inventory_dict_copy), 11 + mscroll)
             ]:
-                if k in self.renderbox:
-                    itemtext = self.renderbox[k]
+                if item in self.renderbox:
+                    itemtext: pygame.Surface = self.renderbox[item]
                 else:
                     continue
 
@@ -348,128 +363,108 @@ class Inventory:
                     itemtext.get_rect(topleft=(420, 75 + (50 * item_index))).collidepoint(
                         mpos
                     )
-                    and mtogg
                 ):
-                    match mouses:
-                        case _, _, 1:
-                            match k[1]:
-                                case -1:
-                                    self.info = "if i eat this ill 110% die"
-                                case 0:
-                                    self.info = "not gonna softlock myself"
-                                case _:
-                                    if mouses[0]:
-                                        sawman.shealth += k[1] / 2
-                                        sawman.zhealth += k[1] / 2
-                                        if v == 1:
-                                            del self.invbox[k]
-                                        else:
-                                            self.invbox[k] -= 1
-                                        mtogg = False
-                                    self.info = "yim yum"
-                        case _, 1, _:
-                            if mtogg:
-                                if k[1] < -1:
-                                    if self.zhands:
-                                        self.invbox[self.zhands] = (
-                                            1
-                                            if self.zhands not in self.invbox
-                                            else self.invbox[self.zhands] + 1
-                                        )
-                                    if self.invbox[k] == 1:
-                                        del self.invbox[k]
-                                    else:
-                                        self.invbox[k] -= 1
-                                    self.zhands = k
-                                    self.update()
-                                if k[1] > 0:
-                                    if self.shands:
-                                        self.invbox[self.shands] = (
-                                            1
-                                            if self.shands not in self.invbox
-                                            else self.invbox[self.shands] + 1
-                                        )
-                                    if self.invbox[k] == 1:
-                                        del self.invbox[k]
-                                    else:
-                                        self.invbox[k] -= 1
-                                    self.shands = k
-                                    self.update()
-                                mtogg = False
-                        case 1, _, _:
-                            if len(self.tubes) < 2:
-                                if k not in self.tubes:
-                                    self.tubes.append(k)
-                                self.tubes.sort()
-                                self.tubetext1 = glow(
-                                    pygame.transform.rotate(
-                                        fontmin.render(
-                                            f"{self.tubes[0][0]}",
-                                            fontaliased,
-                                            (255, 0, 0),
-                                        ),
-                                        90,
-                                    ),
-                                    0.3,
-                                    (255, 0, 0),
-                                )
-                                self.tubetext2 = glow(
-                                    pygame.transform.rotate(
-                                        fontmin.render(
-                                            f"{self.tubes[-1][0]}",
-                                            fontaliased,
-                                            (255, 0, 0),
-                                        ),
-                                        90,
-                                    ),
-                                    0.3,
-                                    (255, 0, 0),
-                                )
-                                if tuple(self.tubes) in recipies.keys():
-                                    for x in self.tubes:
-                                        if self.invbox[x] == 1:
-                                            del self.invbox[x]
-                                        else:
-                                            self.invbox[x] -= 1
-                                    if isinstance(recipies[tuple(self.tubes)], tuple):
-                                        self.invbox[recipies[tuple(self.tubes)]] = (
-                                            1
-                                            if recipies[tuple(self.tubes)]
-                                            not in self.invbox
-                                            else self.invbox[
-                                                recipies[tuple(self.tubes)]
-                                            ]
-                                            + 1
-                                        )
-                                        self.result = recipies[tuple(self.tubes)][0]
-                                    else:
-                                        self.result = ""
-                                        for x in recipies[tuple(self.tubes)]:
-                                            self.invbox[x] = (
-                                                1
-                                                if x not in self.invbox
-                                                else self.invbox[x] + 1
-                                            )
-                                            self.result = f"{self.result}+{x[0]}"  # ono
-                                        self.result = self.result[1::]
-                                    mtogg = False
-                                    self.tubes = []
-                                    self.update()
-                            else:
-                                self.tubes = []
-                    itemtext = glow(
-                        fontmed.render(f"{v}: {k[0]}", fontaliased, (255, 0, 0)),
+                    # lerp glow someday
+                    itemtext: pygame.Surface = glow(
+                        fontmed.render(f"{quantity}: {item[0]}", fontaliased, (255, 0, 0)),
                         5,
                         (255, 0, 0),
                     )
-                if v < 0:
-                    self.invbox.pop(k)
-                screen.blit(itemtext, (420, 75 + (50 * item_index) + self.ymov))
+                    if b_togg:
+                        itemtext: pygame.Surface = fontmed.render(f"{quantity}: {item[0]}", fontaliased, (255, 0, 0))
+                        match mouses:
+                            case _, _, 1:
+                                match item[1]:
+                                    case -1:
+                                        self.info = "if i eat this ill 110% die"
+                                    case 0:
+                                        self.info = "not gonna softlock myself"
+                                    case _:
+                                        if mouses[0]:
+                                            player_vars.s_health += item[1] / 2
+                                            player_vars.z_health += item[1] / 2
+                                            if quantity == 1:
+                                                del self.inventory_dict[item]
+                                            else:
+                                                self.inventory_dict[item] -= 1
+                                            self.update_items()
+                                            self.update_health(player_vars)
+                                        self.info = "yim yum"
+                            case _, 1, _:
+                                if item[1] < -1:
+                                    if self.z_hands:
+                                        self.inventory_dict[self.z_hands] = (
+                                            1
+                                            if self.z_hands not in self.inventory_dict
+                                            else self.inventory_dict[self.z_hands] + 1
+                                        )
+                                    if self.inventory_dict[item] == 1:
+                                        del self.inventory_dict[item]
+                                    else:
+                                        self.inventory_dict[item] -= 1
+                                    self.z_hands = item
+                                if item[1] > 0:
+                                    if self.s_hands:
+                                        self.inventory_dict[self.s_hands] = (
+                                            1
+                                            if self.s_hands not in self.inventory_dict
+                                            else self.inventory_dict[self.s_hands] + 1
+                                        )
+                                    if self.inventory_dict[item] == 1:
+                                        del self.inventory_dict[item]
+                                    else:
+                                        self.inventory_dict[item] -= 1
+                                    self.s_hands = item
+                                self.update_items()
+                            case 1, _, _:
+                                if len(self.tubes) < 2:
+                                    if item not in self.tubes:
+                                        self.tubes.append(item)
+                                    self.tubes.sort()
+                                    self.tubetext1 = glow(
+                                        pygame.transform.rotate(
+                                            fontmin.render(
+                                                f"{self.tubes[0][0]}",
+                                                fontaliased,
+                                                (255, 0, 0),
+                                            ),
+                                            90,
+                                        ),
+                                        0.3,
+                                        (255, 0, 0),
+                                    )
+                                    self.tubetext2 = glow(
+                                        pygame.transform.rotate(
+                                            fontmin.render(
+                                                f"{self.tubes[-1][0]}",
+                                                fontaliased,
+                                                (255, 0, 0),
+                                            ),
+                                            90,
+                                        ),
+                                        0.3,
+                                        (255, 0, 0),
+                                    )
+                                    if tuple(self.tubes) in recipies.keys() and giveable(self.inventory_dict, recipies[tuple(self.tubes)]):
+                                        for x in self.tubes:
+                                            if self.inventory_dict[x] == 1:
+                                                del self.inventory_dict[x]
+                                            else:
+                                                self.inventory_dict[x] -= 1
+                                        give_items(self.inventory_dict, recipies[tuple(self.tubes)])
+                                        self.tubes = []
+                                        self.update_items()
+                                else:
+                                    self.tubes = []
+
+                if quantity < 0:
+                    self.inventory_dict.pop(item)
+                screen.blit(itemtext, (420, 75 + (50 * item_index) + self.y_position))
                 item_index += 1
                 if self.tubes:
-                    screen.blit(self.tubetext1, (1042, 220 + self.ymov))
-                    screen.blit(self.tubetext2, (1082, 220 + self.ymov))
-                i = 0
+                    screen.blit(self.tubetext1, (1042, 220 + self.y_position))
+                    screen.blit(self.tubetext2, (1082, 220 + self.y_position))
+                i: int = 0
                 for r in self.result.split("+"):
                     screen.blit(
                         glow(
@@ -477,13 +472,13 @@ class Inventory:
                             0.2,
                             (0, 0, 255),
                         ),
-                        (1020, 490 + i + self.ymov),
+                        (1020, 490 + i + self.y_position),
                     )
                     i += 30
 
             screen.blit(
                 fontmin.render(self.info, fontaliased, (255, 255, 255)),
-                (60, 250 + self.ymov),
+                (60, 250 + self.y_position),
             )
 
             # FUCKING ZOO WEE MAMA ITEMS ARENT REAL THEYE A TUPLE
@@ -493,92 +488,76 @@ class Inventory:
 
 
 class Obj:
-    def __init__(self, sprite, position, item_batches, dialogs, collision=True):
+    def __init__(self, sprite: pygame.Surface, position: pygame.math.Vector2, dialogs: list[tuple[tuple[tuple[str,str],str],Callable]], collision=True):
         self.current_position: pygame.math.Vector2 = pygame.math.Vector2(position)
         self.collision = collision
         self.sprite = shadow(pygame.image.load(sprite).convert_alpha(), 5, (0, 0, 0))
         self.dialogs = dialogs
-        self.dialog = dialogs[0]
-        for i in self.dialog:
-            if i[0]:
-                if i[0][1].endswith(".mp4"):
-                    self.dialog[self.dialog.index(i)] = (
-                        (
-                            i[0][0],
-                            Video(f"{cwd}/sprites/faces/{i[0][0]}/{i[0][1]}"),
-                        ),
-                        self.dialog[self.dialog.index(i)][1],
-                    )
+        self.dialog, self.custom_funcs = self.dialogs.pop(0)
+        # for i in self.dialog:
+        #     if i[0]:
+        #         if i[0][1].endswith(".mp4"):
+        #             self.dialog[self.dialog.index(i)] = (
+        #                 (
+        #                     i[0][0],
+        #                     Video(f"{cwd}/sprites/faces/{i[0][0]}/{i[0][1]}"),
+        #                 ),
+        #                 self.dialog[self.dialog.index(i)][1],
+        #             )
 
-        self.dialen, self.diarender = set_dialog(self.dialog, fontmed, fontaliased)
+        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, fontmed, fontaliased)
         # print(self.diarender)
-        self.item_batches = item_batches # shouldve been bitches smsmsh
+        # self.item_batches = item_batches # shouldve been bitches smsmsh
         self.rect = pygame.Rect(self.current_position, self.sprite.get_size())
 
     def save(self):
         return (
             self.dialog,
-            self.items,
+            self.item_batches,
             True,
         )
 
     def load(self, a):
-        self.dialog, self.items, _ = a
-        self.dialen, self.diarender = set_dialog(self.dialog, fontmed, fontaliased)
+        self.dialog, self.item_batches, _ = a
+        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, fontmed, fontaliased)
         
 
-    def move(self, room, keys, tick, wall, entertime, ysort, offset):
+    def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
         screen.blit(self.sprite, self.current_position + offset)
 
             
 
-    def textbox(self, sawman, inventory, i, ymov):
-        if (sawman.dialog_index > self.dialen):
-            sawman.group = dict()
-            sawman.dialog_index = 0
+    def textbox(self, textbox_surface: pygame.Surface, player_vars, inventory, b_togg, text_scroll, y_position):
+        if (player_vars.dialog_index > self.dialog_len):
+            player_vars.group = {}
+            player_vars.dialog_index = 0
             # adddict(inventory.invbox, self.items[0])
             music.unpause()
-            if self.item_batches and giveable(inventory.invbox, self.item_batches[0]):
-                if len(self.dialogs) > 1:
-                    self.dialogs.pop(0)
-                self.dialog = self.dialogs[0]
-                self.dialen, self.diarender = set_dialog(self.dialog, fontmed, fontaliased)
-                if self.item_batches:
-                    # inventory.invbox = adddict(inventory.invbox, self.items[0])
-                    give_items(inventory.invbox, self.item_batches.pop(0))
-                    inventory.update()
+            # print(self.dialogs[0])
+            # print(giveable(inventory.inventory_dict, self.items))
+            can_finish_dialog, run_after_dialog = self.custom_funcs
+            if self.dialogs and can_finish_dialog(inventory.inventory_dict):
+                print(self.custom_funcs)
+                run_after_dialog(inventory.inventory_dict)
+                inventory.update_items()
+                self.dialog, self.custom_funcs = self.dialogs.pop(0)
+                self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, fontmed, fontaliased)
+
 
         else:
-            if self.dialog[sawman.dialog_index - 1][0]:
-                sawman.group[self.dialog[sawman.dialog_index - 1][0][0]] = self.dialog[
-                    sawman.dialog_index - 1
-                ][0][1]
-            print(sawman.group)
-            for f in sorted(sawman.group.keys()):
-                if isinstance(sawman.group[f], str):
-                    screen.blit(
-                        pygame.image.load(
-                            f"{cwd}/sprites/faces/{f}/{sawman.group[f]}.png"
-                        ).convert_alpha(),
-                        (0, 0),
-                    )
-            if self.dialog[sawman.dialog_index - 1][0]:
-                if not isinstance(self.dialog[sawman.dialog_index - 1][0][1], str):
-                    video = self.dialog[sawman.dialog_index - 1][0][1]
-                    video.play()
-                    video.draw_to(screen, (0, 0))
-                    print(video.current_frame)
-                    print(video.total_frames)
-                    if video.current_frame == video.total_frames:
-                        video.stop()
-                        video.release()
-                        sawman.dialog_index += 1
+            if self.dialog[player_vars.dialog_index - 1][0]:
+                player_vars.group[self.dialog[player_vars.dialog_index - 1][0][0]] = pygame.image.load(
+                    f"{cwd}/sprites/faces/{self.dialog[player_vars.dialog_index - 1][0][0]}/{self.dialog[player_vars.dialog_index - 1][0][1]}.png"
+                ).convert_alpha()
 
-            if "cutscene" in sawman.group.keys():
+            #idfk man
+            [screen.blit(face_sprite[1], (0, 0)) for face_sprite in sorted(player_vars.group.items(), key= lambda x: x[0])]
+
+            if "cutscene" in player_vars.group.keys():
                 music.pause()
-            screen.blit(box, (0, 480 + ymov))
-            if self.dialog[sawman.dialog_index - 1][0]:
-                match self.dialog[sawman.dialog_index - 1][0][0]:
+            screen.blit(textbox_surface, (0, 480 + y_position))
+            if self.dialog[player_vars.dialog_index - 1][0]:
+                match self.dialog[player_vars.dialog_index - 1][0][0]:
                     case "sawman":
                         x_offset = 200
                     case "zweistein":
@@ -586,7 +565,7 @@ class Obj:
                     case _:
                         x_offset = 625
                 text = fontmed.render(
-                    self.dialog[sawman.dialog_index - 1][0][0].capitalize(),
+                    self.dialog[player_vars.dialog_index - 1][0][0].capitalize(),
                     False,
                     (255, 255, 255),
                 )
@@ -594,7 +573,7 @@ class Obj:
                     screen,
                     (0, 0, 0, 127),
                     pygame.Rect(
-                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                        (x_offset - 30, 440 + y_position), (text.get_width() + 60, 60)
                     ),
                     border_radius=50,
                 )
@@ -602,28 +581,28 @@ class Obj:
                     screen,
                     (255, 0, 0),
                     pygame.Rect(
-                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                        (x_offset - 30, 440 + y_position), (text.get_width() + 60, 60)
                     ),
                     border_radius=50,
                     width=5,
                 )
                 screen.blit(
                     text,
-                    (x_offset, 440 + ymov),
+                    (x_offset, 440 + y_position),
                 )
-            for line in self.diarender[sawman.dialog_index - 1][
-                min(i, len(self.diarender[sawman.dialog_index - 1]) - 1)
+            for line in self.rendered_dialog[player_vars.dialog_index - 1][
+                min(text_scroll, len(self.rendered_dialog[player_vars.dialog_index - 1]) - 1)
             ]:
                 screen.blit(
                     line,
                     (
                         250,
                         500
-                        + ymov
+                        + y_position
                         + (
                             50
-                            * self.diarender[sawman.dialog_index - 1][
-                                min(i, len(self.diarender[sawman.dialog_index - 1]) - 1)
+                            * self.rendered_dialog[player_vars.dialog_index - 1][
+                                min(text_scroll, len(self.rendered_dialog[player_vars.dialog_index - 1]) - 1)
                             ].index(line)
                         ),
                     ),
@@ -639,11 +618,16 @@ class Chaser:
         self.initial_position: pygame.math.Vector2 = pygame.math.Vector2(position)
         self.speed = speed
         self.shock = shock
-        self.enemies = enemies
-        self.sprite, self.w, self.h = enemclip(
-            shadow(pygame.image.load(sprite).convert_alpha(), 5, (0, 0, 0)), (0, 0)
-        )
-        self.rect = pygame.Rect(self.current_position, (self.w, self.h))
+        self.enemies = [enemies[0], pygame.image.load(f"{cwd}/battle/enemies/{enemies[0]}.png").convert_alpha(), enemies[1]]
+        # self.sprite, self.w, self.h = enemclip(
+        #     , (0, 0)
+        # )
+        self.width, self.height = pygame.image.load(sprite).get_size()
+        self.width //= 3
+        self.height //= 2
+        self.spritesheet = clip(shadow(pygame.image.load(sprite).convert_alpha(), 5, (0, 0, 0)), self.width, self.height)
+        self.sprite = self.spritesheet[(0,0)]
+        self.rect = pygame.Rect(self.current_position, (self.width, self.height))
 
     def save(self):
         return (
@@ -655,24 +639,24 @@ class Chaser:
     def load(self, a):
         self.enemies, _, _ = a
 
-    def move(self, room, keys, tick, wall, entertime, ysort, offset):
+    def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
         scale = self.current_position.y / 360 if room.outside else 1
         if self.enemies:
             if tick - entertime > self.shock * 6:
                 self.t = min(self.t + (0.1 * scale * self.speed / fps), 1)
                 self.current_position = pygame.math.Vector2.lerp(
-                    self.current_position, sawman.current_position, self.t
+                    self.current_position, player_vars.current_position, self.t
                 )
             else:
                 self.t = 0
                 self.current_position = self.initial_position
             # print(abs(sawman.x - self.x))
             if (
-                abs(sawman.current_position.x - self.current_position.x) < self.w * scale
+                pygame.math.Vector2.length_squared(player_vars.current_position - self.current_position) < self.width * self.width * scale
             ):
-                if not (battle.enemies or sawman.inenem):
+                if not (battle.enemies or player_vars.inenem):
                     music.stop()
-                    battle.xp = self.enemies[1]
+                    battle.xp = self.enemies[2]
                     battle.enemies = self.enemies.copy()
                     battle.aa = tick
                     battle.attac = self.speed
@@ -680,13 +664,13 @@ class Chaser:
                     if self.speed:
                         self.enemies = ()
             else:
-                sawman.inenem = False
+                player_vars.inenem = False
             screen.blit(
-                pygame.transform.scale(self.sprite, (self.w * scale, self.h * scale)),
-                self.current_position + offset + (0, (self.h - self.h * scale) - 120 * scale),
+                pygame.transform.scale(self.sprite, (self.width * scale, self.height * scale)),
+                self.current_position + offset + (0, (self.height - self.height * scale) - 120 * scale),
             )
 
-    def textbox(self, b, c, d, e):
+    def textbox(*args):
         pass
 
 
@@ -770,22 +754,21 @@ class Battle:
         self.enemytheme = enemytheme
         self.moneygivers = moneygivers
 
-    def render(self, sawman, tick, keys, bgm, inventory):
+    def render(self, player_vars, tick, keys, bgm, inventory):
         z = 0
+
+        delta_enemy_position: int = tick - self.initial_enemy_position
+        delta_open = tick - self.initial_open
+        # print(self.enemies)
 
         # this should be a dict or smthn
         enemsprite, w, h = enemclip(
-            pygame.image.load(
-                f"{cwd}/battle/enemies/{self.enemies[0]}.png"
-            ).convert_alpha(),
+            self.enemies[1],
             self.enemstate,
         )
 
         half_w = w/2
         half_h = h/2
-
-        delta_enemy_position: int = tick - self.initial_enemy_position
-        delta_open = tick - self.initial_open
 
         self.eloc = (
             [
@@ -799,9 +782,9 @@ class Battle:
 
         self.barloc = lerp(self.barloc, 670, (delta_enemy_position - 8) / 40)
 
-        swood = lognt(sawman.zhealth)
-        zwood = lognt(sawman.zhealth)
-        wood = lognt(self.enemies[1] - 1)
+        swood = lognt(player_vars.s_health)
+        zwood = lognt(player_vars.z_health)
+        wood = lognt(self.enemies[2] - 1)
 
         screen.blit(self.bg, (0, 0))
         screen.blit(
@@ -817,7 +800,7 @@ class Battle:
         )
 
         enemy_healthbar = int(22 * wood)
-        enemy_healthbar_coler = coler(self.enemies[1] + abs((tick % 50) - 25))
+        enemy_healthbar_coler = coler(self.enemies[2] + abs((tick % 50) - 25))
 
         bar(
             screen,
@@ -856,28 +839,28 @@ class Battle:
             self.initial_open = tick
             self.enemstate[1] = 0
             enemy_damage = 20 * self.attac / (1 + 0.5 * (self.strat[0] == " defend")) 
-            if sawman.shealth > sawman.zhealth and not self.ssked:
-                sawman.shealth -= enemy_damage
+            if player_vars.s_health > player_vars.z_health and not self.ssked:
+                player_vars.s_health -= enemy_damage
                 self.sstate = "defense"
                 self.sawtime = tick
                 if self.strat[0] != " skedaddle":
                     self.strat[0] = ""
             else:
-                sawman.zhealth -= enemy_damage
+                player_vars.z_health -= enemy_damage
                 self.zstate = "defense"
                 self.zweitime = tick
                 if self.strat[1] != " skedaddle":
                     self.strat[1] = ""
-            self.enemies[1] -= (
+            self.enemies[2] -= (
                 5
                 * (self.strat[1] == " defend" or self.strat[0] == " defend")
                 / (tick % 10 + 1)
             )
-            if sawman.shealth < 0:
-                sawman.shealth = 0
+            if player_vars.s_health < 0:
+                player_vars.s_health = 0
                 self.sstate = "rip"
-            if sawman.zhealth < 0:
-                sawman.zhealth = 0
+            if player_vars.z_health < 0:
+                player_vars.z_health = 0
                 self.zstate = "rip"
 
         if int((tick / self.initial_open - 1) * 20) > 2:
@@ -898,14 +881,14 @@ class Battle:
         if keys[pygame.K_RETURN]:
             self.strat[self.opass] = self.options[self.oindex][-1 * self.opass]
 
-        if self.exec and sawman.shealth > 0:
+        if self.exec and player_vars.s_health > 0:
             match self.strat[0]:
                 case " attac":
                     if self.sstate != "defense":
                         if not sfx1.get_busy():
                             sfx1.set_volume(sfxvol)
                             sfx1.play(self.sawin)
-                        self.enemies[1] -= (1 + abs(swood)) / 27
+                        self.enemies[2] -= (1 + abs(swood)) / 27
                         self.enemstate[1] = 1
                         self.sstate = "offense"
                     else:
@@ -915,14 +898,14 @@ class Battle:
                 case " defend":
                     self.sstate = "defense"
                 case " feed":
-                    if self.sstate != "defense" and inventory.shands:
-                        self.enemies[1] += inventory.shands[1]
+                    if self.sstate != "defense" and inventory.s_hands:
+                        self.enemies[2] += inventory.s_hands[1]
                         self.enemstate[1] = 0
                         self.sstate = "offense"
                         if delta_open > 4:
-                            inventory.shands = ""
+                            inventory.s_hands = ""
                             self.strat[0] = ""
-                    if not inventory.shands:
+                    if not inventory.s_hands:
                         screen.blit(
                             self.feederrbg[0],
                             (347, 283),
@@ -947,18 +930,20 @@ class Battle:
         if not self.ssked:
             screen.blit(
                 self.sawman[self.sstate],
-                (-self.szloc + (((tick * int(sawman.shealth)) / 1024) % 2 - 1), 0),
+                (-self.szloc + (((tick * int(player_vars.s_health)) / 1024) % 2 - 1), 0),
             )
+
+            s_bar = int(12 * lognt(player_vars.s_health - 1))
 
             bar(
                 screen,
-                int(12 * lognt(sawman.shealth - 1)),
+                s_bar,
                 (146, self.barloc + 4),
                 radius=15,
             )
             bar(
                 screen,
-                int(12 * lognt(sawman.shealth - 1)),
+                s_bar,
                 (150, self.barloc),
                 (255, 127, 0),
                 15,
@@ -966,12 +951,12 @@ class Battle:
         else:
             self.opass = 1
 
-        if self.exec and sawman.zhealth > 0:
+        if self.exec and player_vars.z_health > 0:
             match self.strat[1]:
                 case " shoot":
-                    if self.zstate != "defense" and inventory.zhands:
-                        self.enemies[1] += (
-                            inventory.zhands[1] * self.zfocus + (zwood)
+                    if self.zstate != "defense" and inventory.z_hands:
+                        self.enemies[2] += (
+                            inventory.z_hands[1] * self.zfocus + (zwood)
                         ) / 9
                         self.enemstate[1] = 0
                         if not sfx2.get_busy():
@@ -979,9 +964,9 @@ class Battle:
                             sfx2.play(self.bang)
                         self.zstate = "offense"
                         if delta_enemy_position > 4:
-                            inventory.zhands = ""
+                            inventory.z_hands = ""
                             self.strat[1] = ""
-                    if not inventory.zhands:
+                    if not inventory.z_hands:
                         screen.blit(
                             self.shooterrbg[0],
                             (757, 283),
@@ -1021,17 +1006,18 @@ class Battle:
         if not self.zsked:
             screen.blit(
                 self.zweistein[self.zstate],
-                (self.szloc + (((tick * int(sawman.zhealth)) / 1024) % 2 - 1), 0),
+                (self.szloc + (((tick * int(player_vars.z_health)) / 1024) % 2 - 1), 0),
             )
+            z_bar = int(12 * lognt(player_vars.z_health - 1))
             bar(
                 screen,
-                int(12 * lognt(sawman.zhealth - 1)),
+                z_bar,
                 (1124, self.barloc + 4),
                 radius=15,
             )
             bar(
                 screen,
-                int(12 * lognt(sawman.zhealth - 1)),
+                z_bar,
                 (1130, self.barloc),
                 (255, 0, 127),
                 15,
@@ -1099,8 +1085,8 @@ class Battle:
             ),
         )
         if (
-            self.enemies[1] < 5
-            or self.enemies[1] - self.xp > 20
+            self.enemies[2] < 5
+            or self.enemies[2] - self.xp > 20
             or (self.strat == [" skedaddle", " skedaddle"] and self.exec)
         ):
             sfx1.set_volume(0)
@@ -1108,10 +1094,10 @@ class Battle:
             music.stop()
             self.enemstate = [0, 1]
             music.play(pygame.mixer.Sound(f"{cwd}/music/{bgm}.mp3"), -1)
-            sawman.shealth += int(battle.xp) / 2
-            sawman.zhealth += int(battle.xp) / 2
-            sawman.money += self.moneygivers[self.enemies[0]]
-            sawman.inenem = True
+            player_vars.s_health += int(battle.xp) / 2
+            player_vars.z_health += int(battle.xp) / 2
+            player_vars.money += self.moneygivers[self.enemies[0]]
+            player_vars.inenem = True
             self.xp = 0
             self.strat = ["", ""]
             self.zstate = "idle"
@@ -1137,15 +1123,15 @@ class Room:
         self.mask = pygame.mask.from_surface(self.wall)
         self.portals = portals
         self.dialog = dialog
-        self.dialen = len(self.dialog)
-        self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
-        for i in self.diarender:
-            idex = self.diarender.index(i)
+        self.dialog_len = len(self.dialog)
+        self.rendered_dialog = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+        for i in self.rendered_dialog:
+            idex = self.rendered_dialog.index(i)
             for j in i:
                 jdex = i.index(j)
-                self.diarender[idex][jdex] = [
+                self.rendered_dialog[idex][jdex] = [
                     fontmed.render(k, fontaliased, (255, 255, 255))
-                    for k in self.diarender[idex][jdex].split("\n")
+                    for k in self.rendered_dialog[idex][jdex].split("\n")
                 ]
 
     def save(self):
@@ -1161,15 +1147,15 @@ class Room:
         self.intersrect = [x.sprite.get_rect(topleft=(x.x, x.y)) for x in self.inters]
         self.dialog = cutscene
         if self.dialog:
-            self.dialen = len(self.dialog)
-            self.diarender = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
-            for i in self.diarender:
-                idex = self.diarender.index(i)
+            self.dialog_len = len(self.dialog)
+            self.rendered_dialog = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
+            for i in self.rendered_dialog:
+                idex = self.rendered_dialog.index(i)
                 for j in i:
                     jdex = i.index(j)
-                    self.diarender[idex][jdex] = [
+                    self.rendered_dialog[idex][jdex] = [
                         fontmed.render(k, fontaliased, (255, 255, 255))
-                        for k in self.diarender[idex][jdex].split("\n")
+                        for k in self.rendered_dialog[idex][jdex].split("\n")
                     ]
 
     def render(self, x, y):
@@ -1198,24 +1184,21 @@ class Room:
         screen.blit(self.floor, (x, y))
         screen.blit(self.wall, (x, y))
 
-    def textbox(self, i, ymov):
-        if sawman.dialog_index > self.dialen:
-            self.dialen = self.dialog = sawman.dialog_index = 0
+    def textbox(self, player_vars, text_scroll, y_position):
+        if player_vars.dialog_index > self.dialog_len:
+            self.dialog_len = self.dialog = player_vars.dialog_index = 0
+            player_vars.group = {}
         else:
-            if self.dialog[sawman.dialog_index - 1][0]:
-                sawman.group[self.dialog[sawman.dialog_index - 1][0][0]] = self.dialog[
-                    sawman.dialog_index - 1
-                ][0][1]
-            for f in sorted(sawman.group.keys()):
-                screen.blit(
-                    pygame.image.load(
-                        f"{cwd}/sprites/faces/{f}/{sawman.group[f]}.png"
-                    ).convert_alpha(),
-                    (0, 0 + ymov),
-                )
-            screen.blit(box, (0, 480 + ymov))
-            if self.dialog[sawman.dialog_index - 1][0]:
-                match self.dialog[sawman.dialog_index - 1][0][0]:
+            if self.dialog[player_vars.dialog_index - 1][0]:
+                player_vars.group[self.dialog[player_vars.dialog_index - 1][0][0]] = pygame.image.load(
+                    f"{cwd}/sprites/faces/{self.dialog[player_vars.dialog_index - 1][0][0]}/{self.dialog[player_vars.dialog_index - 1][0][1]}.png"
+                ).convert_alpha()
+
+            [screen.blit(face_sprite[1], (0, 0)) for face_sprite in sorted(player_vars.group.items(), key= lambda x: x[0])]
+
+            screen.blit(box, (0, 480 + y_position))
+            if self.dialog[player_vars.dialog_index - 1][0]:
+                match self.dialog[player_vars.dialog_index - 1][0][0]:
                     case "sawman":
                         x_offset = 200
                     case "zweistein":
@@ -1223,7 +1206,7 @@ class Room:
                     case _:
                         x_offset = 625
                 text = fontmed.render(
-                    self.dialog[sawman.dialog_index - 1][0][0].capitalize(),
+                    self.dialog[player_vars.dialog_index - 1][0][0].capitalize(),
                     False,
                     (255, 255, 255),
                 )
@@ -1231,7 +1214,7 @@ class Room:
                     screen,
                     (0, 0, 0, 127),
                     pygame.Rect(
-                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                        (x_offset - 30, 440 + y_position), (text.get_width() + 60, 60)
                     ),
                     border_radius=50,
                 )
@@ -1239,28 +1222,28 @@ class Room:
                     screen,
                     (255, 0, 0),
                     pygame.Rect(
-                        (x_offset - 30, 440 + ymov), (text.get_width() + 60, 60)
+                        (x_offset - 30, 440 + y_position), (text.get_width() + 60, 60)
                     ),
                     border_radius=50,
                     width=5,
                 )
                 screen.blit(
                     text,
-                    (x_offset, 440 + ymov),
+                    (x_offset, 440 + y_position),
                 )
-            for line in self.diarender[sawman.dialog_index - 1][
-                min(i, len(self.diarender[sawman.dialog_index - 1]) - 1)
+            for line in self.rendered_dialog[player_vars.dialog_index - 1][
+                min(text_scroll, len(self.rendered_dialog[player_vars.dialog_index - 1]) - 1)
             ]:
                 screen.blit(
                     line,
                     (
                         250,
                         500
-                        + ymov
+                        + y_position
                         + (
                             50
-                            * self.diarender[sawman.dialog_index - 1][
-                                min(i, len(self.diarender[sawman.dialog_index - 1]) - 1)
+                            * self.rendered_dialog[player_vars.dialog_index - 1][
+                                min(text_scroll, len(self.rendered_dialog[player_vars.dialog_index - 1]) - 1)
                             ].index(line)
                         ),
                     ),
@@ -1269,16 +1252,17 @@ class Room:
 
 # wow the portal class is useless huh
 class Portal:
-    def __init__(self, position, dim, rindex, new_position: pygame.math.Vector2):
+    def __init__(self, position, dim, room_index, new_position: pygame.math.Vector2):
         self.door = pygame.Rect(
             (position[0] - (dim[0] / 2), position[1] - (dim[0] / 2)), (dim[0], dim[1])
         )
-        self.rindex = rindex
+        self.room_index = room_index
         self.new_position = pygame.math.Vector2(new_position)
 
 class Trader:
-    collision = True
-    diarender = ("", "")
+    collision: bool = True
+    rendered_dialog = ("", "")
+    dialog = ((0, 1),(1, 1))
 
     def __init__(self, sprite, position, shopman, menu):
         self.current_position: pygame.math.Vector2 = pygame.math.Vector2(position)
@@ -1288,13 +1272,13 @@ class Trader:
         self.shopman = pygame.image.load(shopman).convert()
         self.menu = menu
 
-    def textbox(self, sawman, inventory, mtogg, ymov):
+    def textbox(self, textbox_surface, player_vars, inventory, b_togg, text_scroll, y_position):
         screen.blit(self.shopman, (0, 0))
-        screen.blit(self.shopui, (0, ymov * 1.2))
+        screen.blit(self.shopui, (0, y_position * 1.2))
         item_index = 0
         mpos = pygame.mouse.get_pos()
-        if sawman.dialog_index == 2:
-            sawman.dialog_index = 0
+        if player_vars.dialog_index == 2:
+            player_vars.dialog_index = 0
             pygame.mouse.set_visible(False)
             mouses = 0, 0, 0
         else:
@@ -1306,11 +1290,11 @@ class Trader:
                     itemtext.get_rect(topleft=(750, 50 + (60 * item_index))).collidepoint(
                         mpos
                     )
-                    and mtogg
+                    and b_togg
                 ):
                     itemtext = glow(
                         fontmed.render(
-                            f"{k[0]}: ௹{v} ({inventory.invbox[k] if k in inventory.invbox else 0})",
+                            f"{k[0]}: ௹{v} ({inventory.inventory_dict[k] if k in inventory.inventory_dict else 0})",
                             fontaliased,
                             (255, 0, 0),
                         ),
@@ -1319,22 +1303,21 @@ class Trader:
                     )
                     match mouses:
                         case (1, _, _):
-                            if k in inventory.invbox:
-                                inventory.invbox[k] += 1
-                                sawman.money -= v
+                            if k in inventory.inventory_dict:
+                                inventory.inventory_dict[k] += 1
+                                player_vars.money -= v
                             else:
-                                inventory.invbox[k] = 1
-                            mtogg = False
+                                inventory.inventory_dict[k] = 1
                         case (_, _, 1):
-                            if k in inventory.invbox:
-                                if inventory.invbox[k] == 1:
-                                    del inventory.invbox[k]
+                            if k in inventory.inventory_dict:
+                                if inventory.inventory_dict[k] == 1:
+                                    del inventory.inventory_dict[k]
                                 else:
-                                    inventory.invbox[k] -= 1
-                                    sawman.money += v * 0.9
-                            mtogg = False
+                                    inventory.inventory_dict[k] -= 1
+                                    player_vars.money += v * 0.9
+                    b_togg = False
 
-                screen.blit(itemtext, (750, 50 + (60 * item_index) + ymov))
+                screen.blit(itemtext, (750, 50 + (60 * item_index) + y_position))
                 item_index += 1
 
     def load(a, aa):
@@ -1343,7 +1326,7 @@ class Trader:
     def save(a):
         pass
 
-    def move(self, room, keys, tick, wall, entertime, ysort, offset):
+    def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
         screen.blit(self.sprite, self.current_position + offset )
 
 
@@ -1365,7 +1348,7 @@ class Button:
         # NOTE(soi): yea pygame already has a thing for centering rects, should read the documentation more smsmsmh
         self.rect.center = pos
 
-    def draw(self, screen, mpos, btogg, tab, settings_json):
+    def draw(self, screen, mpos, b_togg, tab, settings_json):
         hovered = pygame.Rect.collidepoint(self.rect, mpos)
 
         if hovered:
@@ -1412,7 +1395,7 @@ class Button:
             text,
             fontaliased,
             (255, 0, 0)
-            if pygame.Rect.collidepoint(self.rect, mpos) and btogg
+            if pygame.Rect.collidepoint(self.rect, mpos) and b_togg
             else (255, 255, 255),
         )
         screen.blit(
@@ -1423,13 +1406,14 @@ class Button:
             ),
         )
 
-        if pygame.Rect.collidepoint(self.rect, mpos) and btogg:
+        if pygame.Rect.collidepoint(self.rect, mpos) and b_togg:
             return self.id
 
 
 x = 640
 y = 360
 keys = pygame.key.get_pressed()
+player_vars = Player_Vars()
 sawman = Chara(pygame.math.Vector2(x, y), f"{cwd}/sprites/sawman.png")
 zwei = Zweistein(pygame.math.Vector2(x, y), f"{cwd}/sprites/zweistein.png")
 print(nighttime.strftime("%d"))

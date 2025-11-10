@@ -1,4 +1,5 @@
 from classes import Room, Obj, Portal, Chaser, cwd, Trader
+import custom_funcs 
 
 levels = [
     Room(
@@ -9,51 +10,61 @@ levels = [
             Obj(
                 f"{cwd}/sprites/npc/contractman.png",
                 (480, 280),
-                [{("Okaruns balls", 0): 2}],
                 [
-                    [
-                        (("cutscene", "willi.mp4"), "NO WAY?!?!?!?"),
-                        (("zweistein", "sad"), "wtf"),
-                        (0, "im gonna steal your balls"),
+                    (
                         (
-                            ("sawman", "woe"),
-                            "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
+                            (("sawman", "ono"), "NO WAY?!?!?!?"),
+                            (("zweistein", "sad"), "wtf"),
+                            (0, "im gonna steal your balls"),
+                            (
+                                ("sawman", "woe"),
+                                "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
+                            ),
                         ),
-                    ],
-                    [
-                        (("zweistein", "sad"), "why tf did u give us okarun's balls"),
+                        custom_funcs.npc_give_items({("Okaruns balls", 0): 2})
+                    ),
+                    (
                         (
-                            0,
-                            "its gonna take me years to castrate someone with no balls so take this and leave",
+                            (("zweistein", "sad"), "why tf did u give us okarun's balls"),
+                            (
+                                0,
+                                "its gonna take me years to castrate someone with no balls so take this and leave",
+                            ),
+                            (("sawman", "ono"), "..."),
+                            (("sawman", "sad"), "jesus"),
                         ),
-                        (("sawman", "ono"), "..."),
-                        (("sawman", "sad"), "jesus"),
-                    ],
+                        custom_funcs.npc_do_nothing()
+                    ),
                 ],
             ),
             Obj(
                 f"{cwd}/sprites/npc/contractman.png",
-                (800, 300 ),
-                [{("Okaruns balls", 0): -2}],
+                (800, 300),
                 [
-                    [
-                        (("sawman", "ono"), "NO WAY?!?!?!?"),
-                        (("zweistein", "sad"), "wtf"),
-                        (0, "im gonna steal your balls"),
+                    (
                         (
-                            ("sawman", "woe"),
-                            "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
+                            (("sawman", "ono"), "NO WAY?!?!?!?"),
+                            (("zweistein", "sad"), "wtf"),
+                            (0, "im gonna steal your balls"),
+                            (
+                                ("sawman", "woe"),
+                                "YOU CANT JUST STEAL THE PLOT OF DANDADAN CONTRACT",
+                            ),
                         ),
-                    ],
-                    [
-                        (("zweistein", "sad"), "why tf did u give us okarun's balls"),
+                        custom_funcs.npc_give_items({("Okaruns balls", 0): -2})
+                    ),
+                    (
                         (
-                            0,
-                            "its gonna take me years to castrate someone with no balls so take this and leave",
+                            (("zweistein", "sad"), "why tf did u give us okarun's balls"),
+                            (
+                                0,
+                                "its gonna take me years to castrate someone with no balls so take this and leave",
+                            ),
+                            (("sawman", "ono"), "..."),
+                            (("sawman", "sad"), "jesus"),
                         ),
-                        (("sawman", "ono"), "..."),
-                        (("sawman", "sad"), "jesus"),
-                    ],
+                        custom_funcs.npc_do_nothing()
+                    ),
                 ],
             ),
         ],
@@ -68,43 +79,49 @@ levels = [
             Obj(
                 f"{cwd}/rooms/field1/objects/power.png",
                 (0, 0),
-                [],
                 [
-                    [
-                        (("zweistein", "sus"), "its like a great man once said"),
-                        (("zweistein", "woe"), "with great power"),
-                        (("sawman", "hapi"), "comes great electricity bill"),
-                    ]
+                    (
+                        (
+                            (("zweistein", "sus"), "its like a great man once said"),
+                            (("zweistein", "woe"), "with great power"),
+                            (("sawman", "hapi"), "comes great electricity bill"),
+                        ),
+                        custom_funcs.npc_do_nothing()
+                    )
                 ],
             ),
             Obj(
                 f"{cwd}/rooms/field1/objects/anna.png",
                 (650, 240),
-                [],
                 [
-                    [
-                        (("sawman", "hapi"), "I"),
+                    (
                         (
-                            ("sawman", "sad"),
-                            "dont remember this college being here before",
+                            (("sawman", "hapi"), "I"),
+                            (
+                                ("sawman", "sad"),
+                                "dont remember this college being here before",
+                            ),
+                            (("zweistein", "ono"), "i guess itsa new one"),
+                            (("sawman", "hapi"), "hell yea, im old"),
                         ),
-                        (("zweistein", "ono"), "i guess itsa new one"),
-                        (("sawman", "hapi"), "hell yea, im old"),
-                    ]
+                        custom_funcs.npc_do_nothing()
+                    )
                 ],
             ),
             Obj(
                 f"{cwd}/rooms/field1/objects/acab.png",
                 (920, 310),
-                [],
                 [
-                    [
-                        (("sawman", "woe"), "why is there a police car outside us"),
-                        (("zweistein", "sad"), "i mean"),
-                        (("zweistein", "woe"), "atleast its empty"),
-                        (("sawman", "angy"), "true"),
-                        (("sawman", "sad"), "hopefully it isnt here because of us"),
-                    ]
+                    (
+                        (
+                            (("sawman", "woe"), "why is there a police car outside us"),
+                            (("zweistein", "sad"), "i mean"),
+                            (("zweistein", "woe"), "atleast its empty"),
+                            (("sawman", "angy"), "true"),
+                            (("sawman", "sad"), "hopefully it isnt here because of us"),
+                        ),
+                        custom_funcs.npc_do_nothing()
+                    )
                 ],
             ),
         ],
@@ -122,48 +139,53 @@ levels = [
             Obj(
                 f"{cwd}/sprites/npc/wamen1.png",
                 (210, 280),
-                [{("Fear Of Women", 0): 1}],
                 [
-                    [
-                        (("sawman", "hapi"), "..."),
-                        (("npc", "wamen1"), "..."),
-                        (("sawman", "angy"), "..."),
+                    (
                         (
-                            ("zweistein", "sad"),
-                            "do you seriously walk up to people and expect them to talk first?",
+                            (("sawman", "hapi"), "..."),
+                            (("npc", "wamen1"), "..."),
+                            (("sawman", "angy"), "..."),
+                            (
+                                ("zweistein", "sad"),
+                                "do you seriously walk up to people and expect them to talk first?",
+                            ),
+                            (("sawman", "sad"), "let me handle this"),
+                            (("sawman", "angy"), "ok sawman"),
+                            (("sawman", "ono"), "you can overcome your fears this time"),
+                            (("npc", "wamen1"), "..."),
+                            (("sawman", "hapi"), "Hi im-"),
+                            (("npc", "wamen1"), "i have a boyfriend."),
+                            (("sawman", "sad"), "..."),
+                            (("zweistein", "hapi"), "that couldve gotten wayy worse"),
+                            (0, "*You got gynophobia *"),
                         ),
-                        (("sawman", "sad"), "let me handle this"),
-                        (("sawman", "angy"), "ok sawman"),
-                        (("sawman", "ono"), "you can overcome your fears this time"),
-                        (("npc", "wamen1"), "..."),
-                        (("sawman", "hapi"), "Hi im-"),
-                        (("npc", "wamen1"), "i have a boyfriend."),
-                        (("sawman", "sad"), "..."),
-                        (("zweistein", "hapi"), "that couldve gotten wayy worse"),
-                        (0, "*You got gynophobia *"),
-                    ],
-                    [
+                        custom_funcs.npc_give_items({("Fear Of Women", 0): 1})
+                    ),
+                    (
                         (
-                            ("zweistein", "angy"),
-                            "alright, can you tell us what year it is",
+                            (
+                                ("zweistein", "angy"),
+                                "alright, can you tell us what year it is",
+                            ),
+                            (("npc", "wamen1"), "uhhhh, its 1446"),
+                            (("zweistein", "ono"), "My god, we have gone back in time-"),
+                            (("sawman", "angy"), "its in the hijri calendar, probably"),
+                            (("npc", "wamen1"), "how did you-"),
+                            (("sawman", "sus"), "so its probably like 2024 ish"),
+                            (("npc", "wamen1"), "2025, but how did you know that?"),
+                            (("sawman", "hapi"), "i know some muslims"),
+                            (("sawman", "sad"), "or rather, i knew some muslims"),
+                            (
+                                ("npc", "wamen1"),
+                                "oh yea, right. considering the entire government collapsed and all",
+                            ),
+                            (("zweistein", "ono"), "..."),
+                            (("sawman", "ono"), "..."),
+                            (("zweistein", "woe"), "..."),
+                            (("sawman", "woe"), "AHHH SCARY WOMAN"),
                         ),
-                        (("npc", "wamen1"), "uhhhh, its 1446"),
-                        (("zweistein", "ono"), "My god, we have gone back in time-"),
-                        (("sawman", "angy"), "its in the hijri calendar, probably"),
-                        (("npc", "wamen1"), "how did you-"),
-                        (("sawman", "sus"), "so its probably like 2024 ish"),
-                        (("npc", "wamen1"), "2025, but how did you know that?"),
-                        (("sawman", "hapi"), "i know some muslims"),
-                        (("sawman", "sad"), "or rather, i knew some muslims"),
-                        (
-                            ("npc", "wamen1"),
-                            "oh yea, right. considering the entire government collapsed and all",
-                        ),
-                        (("zweistein", "ono"), "..."),
-                        (("sawman", "ono"), "..."),
-                        (("zweistein", "woe"), "..."),
-                        (("sawman", "woe"), "AHHH SCARY WOMAN"),
-                    ],
+                        custom_funcs.npc_do_nothing()
+                    ),
                 ],
             )
         ],
@@ -182,27 +204,29 @@ levels = [
             Obj(
                 f"{cwd}/rooms/deadend1/horse.png",
                 (403, 250),
-                [],
                 [
-                    [
-                        (("zweistein", "hapi"), "horsie!!"),
-                        (("zweistein", "ono"), "OHGOD WHAT IS THAT"),
-                        (("cutscene", "dark"), "..."),
+                    (
                         (
-                            ("cutscene", "horseman"),
-                            "எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொள்.",
+                            (("zweistein", "hapi"), "horsie!!"),
+                            (("zweistein", "ono"), "OHGOD WHAT IS THAT"),
+                            (("cutscene", "dark"), "..."),
+                            (
+                                ("cutscene", "horseman"),
+                                "எ-என் வாழ்க்கையை மு-மு-முடித்துக்கொள்.",
+                            ),
+                            (
+                                ("sawman", "ono"),
+                                "UHHHHH, CAN I HELP YOU??????????????????????????",
+                            ),
+                            (("zweistein", "sad"), "..."),
+                            (
+                                ("zweistein", "angy"),
+                                "i dont think we can help him given the state hes in",
+                            ),
+                            (("sawman", "sus"), "..."),
                         ),
-                        (
-                            ("sawman", "ono"),
-                            "UHHHHH, CAN I HELP YOU??????????????????????????",
-                        ),
-                        (("zweistein", "sad"), "..."),
-                        (
-                            ("zweistein", "angy"),
-                            "i dont think we can help him given the state hes in",
-                        ),
-                        (("sawman", "sus"), "..."),
-                    ]
+                        custom_funcs.npc_do_nothing()
+                    ),
                 ],
             )
         ],
@@ -217,18 +241,23 @@ levels = [
             Obj(
                 f"{cwd}/rooms/field2/objects/foliage.png",
                 (806, 353),
-                [{("Vodka", 0.5): 1}],
                 [
-                    [
-                        (("sawman", "woe"), "NO WAY, FOILIAGE"),
-                        (("zweistein", "sus"), "wait why is there vodka next to it?"),
-                        (0, "*you got vodka*"),
-                    ],
-                    [
-                        (("zweistein", "sus"), "gopnik plant?"),
-                        (("sawman", "hapi"), "gopnik plant."),
-                        (("zweistein", "woe"), "gopnik plant!"),
-                    ],
+                    (
+                        (
+                            (("sawman", "woe"), "NO WAY, FOILIAGE"),
+                            (("zweistein", "sus"), "wait why is there vodka next to it?"),
+                            (0, "*you got vodka*"),
+                        ),
+                        custom_funcs.npc_give_items({("Vodka", 0.5): 1})
+                    ),
+                    (
+                        (
+                            (("zweistein", "sus"), "gopnik plant?"),
+                            (("sawman", "hapi"), "gopnik plant."),
+                            (("zweistein", "woe"), "gopnik plant!"),
+                        ),
+                        custom_funcs.npc_do_nothing()
+                    ),
                 ],
                 False,
             )
