@@ -51,8 +51,8 @@ box = pygame.image.load(f"{cwd}/ui/textbox.png").convert_alpha()
 invui = pygame.image.load(f"{cwd}/ui/inventory.png").convert_alpha()
 invanim = range(0, 27)
 
-fontmed = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
-fontmin = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
+font_medium = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
+font_small = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
 
 # @dataclass
 class Player_Vars:
@@ -162,39 +162,25 @@ class Chara:
             )
             # print(in_object)
             # print(self.xf)
-            # if sawman.mask.overlap(wall, (-self.xf, -self.yf - 188)) or self.in_object:
-            #     for adj in (
-            #         (1, 1),
-            #         (-1, 1),
-            #         (1, -1),
-            #         (-1, -1),
-            #     ):
-            #         pygame.draw.rect(
-            #             screen,
-            #             (255, 0, 0),
-            #             pygame.Rect(
-            #                 5,
-            #                 5,
-            #                 -self.xf + (adj[0] * self.scale * speed),
-            #                 -self.yf - 188 + (adj[1] * self.scale * speed),
-            #             ),
-            #         )
-            #         self.in_object = reduce(
-            #             lambda x, y: x or y,
-            #             [
-            #                 rect.sprite.get_rect(topleft=(rect.x, rect.y)).collidepoint(
-            #                     (
-            #                         self.xf + 50 + (adj[0] * self.scale * speed),
-            #                         self.yf
-            #                         + y_offset
-            #                         - (239 * self.scale)
-            #                         + (adj[0] * self.scale * speed),
-            #                     )
-            #                 )
-            #                 and rect.collision
-            #                 for rect in ysort
-            #             ],
-            #         )
+            if sawman.mask.overlap(wall, (0, -188) - self.final_position) or self.in_object:
+                for adjacent in (
+                    pygame.math.Vector2(1, 1),
+                    pygame.math.Vector2(-1, 1),
+                    pygame.math.Vector2(1, -1),
+                    pygame.math.Vector2(-1, -1),
+                ):
+                    temp = adjacent * self.scale * speed + self.final_position + (50, -239)
+
+                    self.in_object = reduce(
+                        lambda x, y: x or y,
+                        [
+                            rect.sprite.get_rect(topleft=rect.current_position).collidepoint(
+                                temp
+                            )
+                            and rect.collision
+                            for rect in ysort
+                        ],
+                    )
             if (
                 not self.mask.overlap(
                     wall,
@@ -262,10 +248,10 @@ class Inventory:
     tubes: list = []
     z_hands: str = ""
     s_hands: str = ""
-    z_health_text: pygame.Surface = fontmed.render("", fontaliased, (0, 0, 0))
-    s_health_text: pygame.Surface = fontmed.render("", fontaliased, (0, 0, 0))
+    z_health_text: pygame.Surface = font_medium.render("", fontaliased, (0, 0, 0))
+    s_health_text: pygame.Surface = font_medium.render("", fontaliased, (0, 0, 0))
     # wtf is up with the tube texts
-    nonetext: pygame.Surface = fontmed.render("", fontaliased, (0, 0, 0))
+    nonetext: pygame.Surface = font_medium.render("", fontaliased, (0, 0, 0))
     tubetext1 = tubetext2 = nonetext
     # wait its not even a tube its a beaker
     initial_open: int = 0 
@@ -277,7 +263,7 @@ class Inventory:
         self.inventory_dict: dict[tuple[str,int]: int] = inventory_dict 
         # self.inventory_items = (x[0] for x in self.inventory_dict)
         self.inventory_text = {
-            item_tuple: fontmed.render(f"{quantity}: {item_tuple[0]}", fontaliased, (255, 255, 255))
+            item_tuple: font_medium.render(f"{quantity}: {item_tuple[0]}", fontaliased, (255, 255, 255))
             for item_tuple, quantity in self.inventory_dict.items()
         }
 
@@ -289,13 +275,13 @@ class Inventory:
 
     def update_items(self):
         self.renderbox = {
-            item_tuple: fontmed.render(f"{quantity}: {item_tuple[0]}", fontaliased, (255, 255, 255))
+            item_tuple: font_medium.render(f"{quantity}: {item_tuple[0]}", fontaliased, (255, 255, 255))
             for item_tuple, quantity in self.inventory_dict.items()
         }
 
     def update_health(self, player_vars):
-        self.z_health_text = fontmin.render(f"Health: {int(player_vars.z_health)}", fontaliased, (255, 255, 255))
-        self.s_health_text = fontmin.render(f"Health: {int(player_vars.s_health)}", fontaliased, (255, 255, 255))
+        self.z_health_text = font_small.render(f"Health: {int(player_vars.z_health)}", fontaliased, (255, 255, 255))
+        self.s_health_text = font_small.render(f"Health: {int(player_vars.s_health)}", fontaliased, (255, 255, 255))
 
     # def update_money(self):
     # make this a method
@@ -324,7 +310,7 @@ class Inventory:
             if self.z_hands:
                 screen.blit(
                     glow(
-                        fontmin.render(self.z_hands[0], fontaliased, (255, 0, 127)),
+                        font_small.render(self.z_hands[0], fontaliased, (255, 0, 127)),
                         5,
                         (255, 0, 127),
                     ),
@@ -333,20 +319,20 @@ class Inventory:
             if self.s_hands:
                 screen.blit(
                     glow(
-                        fontmin.render(self.s_hands[0], fontaliased, (255, 127, 0)),
+                        font_small.render(self.s_hands[0], fontaliased, (255, 127, 0)),
                         5,
                         (255, 127, 0),
                     ),
                     (100, 215 + self.y_position),
                 )
             screen.blit(
-                fontmin.render(
+                font_small.render(
                     datetime_ist.strftime("%I:%M %p"), fontaliased, (255, 255, 255)
                 ),
                 (60, 300 + self.y_position),
             )
             screen.blit(
-                fontmin.render(f"௹:{player_vars.money}", fontaliased, (255, 255, 255)),
+                font_small.render(f"௹:{player_vars.money}", fontaliased, (255, 255, 255)),
                 (60, 375 + self.y_position),
             )
             item_index: int = 0
@@ -366,12 +352,12 @@ class Inventory:
                 ):
                     # lerp glow someday
                     itemtext: pygame.Surface = glow(
-                        fontmed.render(f"{quantity}: {item[0]}", fontaliased, (255, 0, 0)),
+                        font_medium.render(f"{quantity}: {item[0]}", fontaliased, (255, 0, 0)),
                         5,
                         (255, 0, 0),
                     )
                     if b_togg:
-                        itemtext: pygame.Surface = fontmed.render(f"{quantity}: {item[0]}", fontaliased, (255, 0, 0))
+                        itemtext: pygame.Surface = font_medium.render(f"{quantity}: {item[0]}", fontaliased, (255, 0, 0))
                         match mouses:
                             case _, _, 1:
                                 match item[1]:
@@ -383,39 +369,23 @@ class Inventory:
                                         if mouses[0]:
                                             player_vars.s_health += item[1] / 2
                                             player_vars.z_health += item[1] / 2
-                                            if quantity == 1:
-                                                del self.inventory_dict[item]
-                                            else:
-                                                self.inventory_dict[item] -= 1
+                                            give_items(self.inventory_dict, {item: -1})
                                             self.update_items()
                                             self.update_health(player_vars)
                                         self.info = "yim yum"
                             case _, 1, _:
-                                if item[1] < -1:
-                                    if self.z_hands:
-                                        self.inventory_dict[self.z_hands] = (
-                                            1
-                                            if self.z_hands not in self.inventory_dict
-                                            else self.inventory_dict[self.z_hands] + 1
-                                        )
-                                    if self.inventory_dict[item] == 1:
-                                        del self.inventory_dict[item]
+                                if item[1]:
+                                    if item[1] < 0:
+                                        if self.z_hands:
+                                            give_items(self.inventory_dict, {self.z_hands: 1})
+                                        give_items(self.inventory_dict, {item: -1})
+                                        self.z_hands = item
                                     else:
-                                        self.inventory_dict[item] -= 1
-                                    self.z_hands = item
-                                if item[1] > 0:
-                                    if self.s_hands:
-                                        self.inventory_dict[self.s_hands] = (
-                                            1
-                                            if self.s_hands not in self.inventory_dict
-                                            else self.inventory_dict[self.s_hands] + 1
-                                        )
-                                    if self.inventory_dict[item] == 1:
-                                        del self.inventory_dict[item]
-                                    else:
-                                        self.inventory_dict[item] -= 1
-                                    self.s_hands = item
-                                self.update_items()
+                                        if self.s_hands:
+                                            give_items(self.inventory_dict, {self.s_hands: 1})
+                                        give_items(self.inventory_dict, {item: -1})
+                                        self.s_hands = item
+                                    self.update_items()
                             case 1, _, _:
                                 if len(self.tubes) < 2:
                                     if item not in self.tubes:
@@ -423,7 +393,7 @@ class Inventory:
                                     self.tubes.sort()
                                     self.tubetext1 = glow(
                                         pygame.transform.rotate(
-                                            fontmin.render(
+                                            font_small.render(
                                                 f"{self.tubes[0][0]}",
                                                 fontaliased,
                                                 (255, 0, 0),
@@ -435,7 +405,7 @@ class Inventory:
                                     )
                                     self.tubetext2 = glow(
                                         pygame.transform.rotate(
-                                            fontmin.render(
+                                            font_small.render(
                                                 f"{self.tubes[-1][0]}",
                                                 fontaliased,
                                                 (255, 0, 0),
@@ -446,38 +416,31 @@ class Inventory:
                                         (255, 0, 0),
                                     )
                                     if tuple(self.tubes) in recipies.keys() and giveable(self.inventory_dict, recipies[tuple(self.tubes)]):
-                                        for x in self.tubes:
-                                            if self.inventory_dict[x] == 1:
-                                                del self.inventory_dict[x]
-                                            else:
-                                                self.inventory_dict[x] -= 1
+                                        give_items(self.inventory_dict, {tube_item: -1 for tube_item in self.tubes})
                                         give_items(self.inventory_dict, recipies[tuple(self.tubes)])
                                         self.tubes = []
                                         self.update_items()
                                 else:
                                     self.tubes = []
 
-                if quantity < 0:
+                if quantity <= 0:
                     self.inventory_dict.pop(item)
                 screen.blit(itemtext, (420, 75 + (50 * item_index) + self.y_position))
                 item_index += 1
-                if self.tubes:
-                    screen.blit(self.tubetext1, (1042, 220 + self.y_position))
-                    screen.blit(self.tubetext2, (1082, 220 + self.y_position))
-                i: int = 0
-                for r in self.result.split("+"):
+                screen.blit(self.tubetext1, (1042, 220 + self.y_position))
+                screen.blit(self.tubetext2, (1082, 220 + self.y_position))
+                for i, r in enumerate(self.result.split("+")):
                     screen.blit(
                         glow(
-                            fontmin.render(r, fontaliased, (255, 0, 0)),
+                            font_small.render(r, fontaliased, (255, 0, 0)),
                             0.2,
                             (0, 0, 255),
                         ),
-                        (1020, 490 + i + self.y_position),
+                        (1020, 490 + (i * 30) + self.y_position),
                     )
-                    i += 30
 
             screen.blit(
-                fontmin.render(self.info, fontaliased, (255, 255, 255)),
+                font_small.render(self.info, fontaliased, (255, 255, 255)),
                 (60, 250 + self.y_position),
             )
 
@@ -505,7 +468,7 @@ class Obj:
         #                 self.dialog[self.dialog.index(i)][1],
         #             )
 
-        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, fontmed, fontaliased)
+        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, font_medium, fontaliased)
         # print(self.diarender)
         # self.item_batches = item_batches # shouldve been bitches smsmsh
         self.rect = pygame.Rect(self.current_position, self.sprite.get_size())
@@ -519,7 +482,7 @@ class Obj:
 
     def load(self, a):
         self.dialog, self.item_batches, _ = a
-        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, fontmed, fontaliased)
+        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, font_medium, fontaliased)
         
 
     def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
@@ -541,7 +504,7 @@ class Obj:
                 run_after_dialog(inventory.inventory_dict)
                 inventory.update_items()
                 self.dialog, self.custom_funcs = self.dialogs.pop(0)
-                self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, fontmed, fontaliased)
+                self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, font_medium, fontaliased)
 
 
         else:
@@ -564,7 +527,7 @@ class Obj:
                         x_offset = 850
                     case _:
                         x_offset = 625
-                text = fontmed.render(
+                text = font_medium.render(
                     self.dialog[player_vars.dialog_index - 1][0][0].capitalize(),
                     False,
                     (255, 255, 255),
@@ -724,23 +687,23 @@ class Battle:
         }
 
         self.feederrbg = (
-            fontmin.render(" ".join(feederr.split()[:2:]), fontaliased, (0, 0, 0)),
-            fontmin.render(" ".join(feederr.split()[3::]), fontaliased, (0, 0, 0)),
+            font_small.render(" ".join(feederr.split()[:2:]), fontaliased, (0, 0, 0)),
+            font_small.render(" ".join(feederr.split()[3::]), fontaliased, (0, 0, 0)),
         )
         self.feederrfg = (
-            fontmin.render(" ".join(feederr.split()[:2:]), fontaliased, (255, 127, 0)),
-            fontmin.render(" ".join(feederr.split()[3::]), fontaliased, (255, 127, 0)),
+            font_small.render(" ".join(feederr.split()[:2:]), fontaliased, (255, 127, 0)),
+            font_small.render(" ".join(feederr.split()[3::]), fontaliased, (255, 127, 0)),
         )
         self.shooterrbg = (
-            fontmin.render(" ".join(shooterr.split()[:2:]), fontaliased, (0, 0, 0)),
-            fontmin.render(" ".join(shooterr.split()[3::]), fontaliased, (0, 0, 0)),
+            font_small.render(" ".join(shooterr.split()[:2:]), fontaliased, (0, 0, 0)),
+            font_small.render(" ".join(shooterr.split()[3::]), fontaliased, (0, 0, 0)),
         )
         self.shooterrfg = (
-            fontmin.render(" ".join(shooterr.split()[:2:]), fontaliased, (255, 0, 255)),
-            fontmin.render(" ".join(shooterr.split()[3::]), fontaliased, (255, 0, 255)),
+            font_small.render(" ".join(shooterr.split()[:2:]), fontaliased, (255, 0, 255)),
+            font_small.render(" ".join(shooterr.split()[3::]), fontaliased, (255, 0, 255)),
         )
-        self.locktextbg = fontmin.render(locktext, fontaliased, (0, 0, 0))
-        self.locktextfg = fontmin.render(locktext, fontaliased, (255, 0, 255))
+        self.locktextbg = font_small.render(locktext, fontaliased, (0, 0, 0))
+        self.locktextfg = font_small.render(locktext, fontaliased, (255, 0, 255))
 
         # this should change depending on enemy wood
         # options = (('call','shoot'),['defend'],('bribe','rob'),['skedaddle'])
@@ -863,10 +826,10 @@ class Battle:
                 player_vars.z_health = 0
                 self.zstate = "rip"
 
-        if int((tick / self.initial_open - 1) * 20) > 2:
+        if (delta_battle := int((tick / self.initial_open - 1) * 20)) > 2:
             self.enemstate = [0, 0]
         else:
-            self.enemstate[0] = int((tick / self.initial_open - 1) * 10) + 1
+            self.enemstate[0] = delta_battle + 1
 
         if (tick - self.sawtime) > 40 and self.sstate == "defense":
             sfx1.set_volume(0)
@@ -1043,7 +1006,7 @@ class Battle:
                 self.exec = False
 
         screen.blit(
-            fontmed.render(
+            font_medium.render(
                 f"{self.strat[0]}{'+' * self.exec}{'   ' * (not self.exec)}{self.strat[1]}",
                 fontaliased,
                 (255 * (self.exec), 0, 0),
@@ -1051,7 +1014,7 @@ class Battle:
             (584 - 24 * len(self.strat[0]), 560),
         )
         screen.blit(
-            fontmed.render(
+            font_medium.render(
                 f"{self.strat[0]}{'+' * self.exec}{'   ' * (not self.exec)}{self.strat[1]}",
                 fontaliased,
                 (255 * (not self.exec), 0, 0),
@@ -1060,21 +1023,21 @@ class Battle:
         )
 
         if delta_enemy_position > 10:
-            pullup(fontaliased, fontmin, screen, self.enemytheme[self.enemies[0]], 0)
+            pullup(fontaliased, font_small, screen, self.enemytheme[self.enemies[0]], 0)
         for o in self.options:
             if not self.ssked:
                 screen.blit(
-                    fontmed.render(o[0], fontaliased, (0, 0, 0)),
+                    font_medium.render(o[0], fontaliased, (0, 0, 0)),
                     (50 - self.szloc, 360 + z),
                 )
             if not self.zsked:
                 screen.blit(
-                    fontmed.render(o[-1], fontaliased, (0, 0, 0)),
+                    font_medium.render(o[-1], fontaliased, (0, 0, 0)),
                     (980 + self.szloc, 360 + z),
                 )
             z += 50
         screen.blit(
-            fontmed.render(
+            font_medium.render(
                 self.options[self.oindex][self.opass],
                 fontaliased,
                 (255, 127 * (-1 * (self.opass - 1)), 127 * self.opass),
@@ -1123,16 +1086,7 @@ class Room:
         self.mask = pygame.mask.from_surface(self.wall)
         self.portals = portals
         self.dialog = dialog
-        self.dialog_len = len(self.dialog)
-        self.rendered_dialog = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
-        for i in self.rendered_dialog:
-            idex = self.rendered_dialog.index(i)
-            for j in i:
-                jdex = i.index(j)
-                self.rendered_dialog[idex][jdex] = [
-                    fontmed.render(k, fontaliased, (255, 255, 255))
-                    for k in self.rendered_dialog[idex][jdex].split("\n")
-                ]
+        self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, font_medium, fontaliased)
 
     def save(self):
         return (
@@ -1147,16 +1101,8 @@ class Room:
         self.intersrect = [x.sprite.get_rect(topleft=(x.x, x.y)) for x in self.inters]
         self.dialog = cutscene
         if self.dialog:
-            self.dialog_len = len(self.dialog)
-            self.rendered_dialog = [scroll(x) for x in [putlines(x[1]) for x in self.dialog]]
-            for i in self.rendered_dialog:
-                idex = self.rendered_dialog.index(i)
-                for j in i:
-                    jdex = i.index(j)
-                    self.rendered_dialog[idex][jdex] = [
-                        fontmed.render(k, fontaliased, (255, 255, 255))
-                        for k in self.rendered_dialog[idex][jdex].split("\n")
-                    ]
+            self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, font_medium, fontaliased)
+
 
     def render(self, x, y):
         # speed = 12 << keys[pygame.K_LSHIFT]
@@ -1205,7 +1151,7 @@ class Room:
                         x_offset = 850
                     case _:
                         x_offset = 625
-                text = fontmed.render(
+                text = font_medium.render(
                     self.dialog[player_vars.dialog_index - 1][0][0].capitalize(),
                     False,
                     (255, 255, 255),
@@ -1272,7 +1218,7 @@ class Trader:
         self.shopman = pygame.image.load(shopman).convert()
         self.menu = menu
 
-    def textbox(self, textbox_surface, player_vars, inventory, b_togg, text_scroll, y_position):
+    def textbox(self, textbox_surface, player_vars, Inventory, b_togg, text_scroll, y_position):
         screen.blit(self.shopman, (0, 0))
         screen.blit(self.shopui, (0, y_position * 1.2))
         item_index = 0
@@ -1285,7 +1231,7 @@ class Trader:
             pygame.mouse.set_visible(True)
             mouses = pygame.mouse.get_pressed()
             for k, v in self.menu.items():
-                itemtext = fontmed.render(f"{k[0]}: ௹{v}", fontaliased, (255, 255, 255))
+                itemtext = font_medium.render(f"{k[0]}: ௹{v}", fontaliased, (255, 255, 255))
                 if (
                     itemtext.get_rect(topleft=(750, 50 + (60 * item_index))).collidepoint(
                         mpos
@@ -1293,7 +1239,7 @@ class Trader:
                     and b_togg
                 ):
                     itemtext = glow(
-                        fontmed.render(
+                        font_medium.render(
                             f"{k[0]}: ௹{v} ({inventory.inventory_dict[k] if k in inventory.inventory_dict else 0})",
                             fontaliased,
                             (255, 0, 0),
@@ -1303,18 +1249,12 @@ class Trader:
                     )
                     match mouses:
                         case (1, _, _):
-                            if k in inventory.inventory_dict:
-                                inventory.inventory_dict[k] += 1
-                                player_vars.money -= v
-                            else:
-                                inventory.inventory_dict[k] = 1
+                            give_items(Inventory.inventory_dict, {k: 1})
+                            player_vars.money -= v
                         case (_, _, 1):
-                            if k in inventory.inventory_dict:
-                                if inventory.inventory_dict[k] == 1:
-                                    del inventory.inventory_dict[k]
-                                else:
-                                    inventory.inventory_dict[k] -= 1
-                                    player_vars.money += v * 0.9
+                            if giveable(Inventory.inventory_dict, {k: -1}):
+                                give_items(Inventory.inventory_dict, {k: -1})
+                                player_vars.money += v * 0.9
                     b_togg = False
 
                 screen.blit(itemtext, (750, 50 + (60 * item_index) + y_position))
@@ -1391,7 +1331,7 @@ class Button:
             else self.id
         )
         self.text = text
-        font_render = fontmin.render(
+        font_render = font_small.render(
             text,
             fontaliased,
             (255, 0, 0)

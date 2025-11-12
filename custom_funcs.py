@@ -2,6 +2,7 @@
 # first func: to check if the npc can go to the next dialog
 # second func: runs after finishing dialog
 from collections.abc import Callable
+from numba import jit
 
 def npc_give_items(items_given: dict[tuple[str, int], int]) -> (Callable, Callable):
     def giveable(inventory: dict[tuple[str, int], int]) -> bool:
@@ -15,6 +16,7 @@ def npc_give_items(items_given: dict[tuple[str, int], int]) -> (Callable, Callab
                 del inventory[item]
     return giveable, give
 
+@jit
 def npc_do_nothing() -> (Callable, Callable):
     def placeholder_1(*args):
         return True 

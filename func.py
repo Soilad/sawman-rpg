@@ -8,8 +8,10 @@ from pygame import (
     BLEND_RGBA_MIN,
 )
 import random
+from numba import jit
 
 
+@jit
 def scroll(s):
     l = []
     for i in range(len(s) + 1):
@@ -77,11 +79,7 @@ def enemclip(surface, pos):
     give_items,
     return image.copy().convert_alpha(), w // 3, h // 2
 
-
-def lerp(i, f, t, thresh=20):
-    return i * (1 - t) + f * (t) if t <= 1 else f
-
-
+@jit
 def coler(x):
     # x = x * 3 / 50
     return (
@@ -90,6 +88,7 @@ def coler(x):
         (max(min(abs((x % 360) - 180), 120), 60) - 60) * 255 / 60,
     )
 
+@jit
 def putlines(text):
     nllimit = 8
     # text = [f'{x} ' for x in f'{text.capitalize()}'.split()]
@@ -150,9 +149,9 @@ def _apply_flicker(screen, tick):
 def bar(screen, health, pos, colour=(0, 0, 0), radius=10):
     draw.rect(screen, colour, Rect(pos[0] - (health / 2), pos[1], health, radius << 1), border_radius=radius)
 
-
+@jit
 def lognt(x):
-    return x * 2 / pow(10, (len("%i" % x) - 1))
+    return x * 2 / pow(10, (len(f"{int(x)}" ) - 1))
 
 def set_dialog(dialog, font, fontaliased):
     dialog_len = len(dialog)

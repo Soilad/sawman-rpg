@@ -46,6 +46,7 @@ print(nighttime.strftime("%H %m %p"))
 
 textbox_surface: pygame.Surface = pygame.image.load(f"{cwd}/ui/textbox.png").convert_alpha()
 inventory_surface: pygame.Surface = pygame.image.load(f"{cwd}/ui/inventory.png").convert_alpha()
+death_screen: pygame.Surface = pygame.image.load(f"{cwd}/ui/rip_lmao.png").convert_alpha()
 
 font_medium = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 48)
 font_small = pygame.font.Font(f"{cwd}/ui/Soilad.ttf", 24)
@@ -112,9 +113,10 @@ aaa = list(
 )
 bgm = current_room.bgm if not isinstance(current_room.bgm, int) else aaa[-1]
 music.play(pygame.mixer.Sound(f"{cwd}/music/{bgm}.mp3"), -1)
-entertime = tick
-if tick - entertime < 10:
-    pullup(fontaliased, font_small, screen, bgm, tick - entertime)
+enter_time: int = tick
+delta_enter_time: int = tick - enter_time
+if delta_enter_time < 10:
+    pullup(fontaliased, font_small, screen, bgm, delta_enter_time)
 camera_x = camera_y = 0
 current_room.render(camera_x, camera_y)
 if current_room.h != 720:
@@ -293,6 +295,11 @@ while run:
             tab = 0
 
         case Menu.GAME:
+            if not (player_vars.s_health or player_vars.z_health):
+                for _ in range(50):
+                    screen.blit(death_screen, (0, 0))
+                    pygame.display.update()
+                run = False
             if not battle.enemies:
                 current_room.render(camera_x, camera_y)
                 if current_room.h != 720:
@@ -305,11 +312,11 @@ while run:
 
                 for item in ysort:
                     item.move(
-                        player_vars, current_room, keys, tick, wall, entertime, ysort, (camera_x, camera_y)
+                        player_vars, current_room, keys, tick, wall, enter_time, ysort, (camera_x, camera_y)
                     )
 
                 if debug_mode:
-                    pygame.draw.circle(screen, (255, 127, 0), (sawman.current_position + (50 * sawman.scale, 239 - (125 * sawman.scale))), 4)
+                    pygame.draw.circle(screen, (255, 127, 0), (sawman.current_position + (50 * sawman.scale, 239)), 4)
                 if current_room.inters:
                     for inter in current_room.inters:
                         # pygame.draw.rect(screen, (255,0,0),inter.rect)
@@ -318,10 +325,10 @@ while run:
                             ysort = sorted(
                                 current_room.inters + [sawman, zwei], key=lambda r: r.current_position.y
                             )
-                        if pygame.Rect.collidepoint(
-                            inter.rect, sawman.final_position + (50, 0)
+                        if pygame.Rect.colliderect(
+                                inter.rect, ((sawman.final_position), (100 * sawman.scale, 239 * sawman.scale))
                         ):
-                            if player_vars.dialog_index:
+                            if player_vars.dialog_index and not current_room.dialog:
                                 sawman.stop = True
                                 inter.textbox(
                                     textbox_surface,
@@ -360,7 +367,7 @@ while run:
             if current_room.dialog:
                 player_vars.dialog_index = 1 if not player_vars.dialog_index else player_vars.dialog_index
                 sawman.stop = True
-                textbox_y = int(lerp(textbox_y, 0, (tick - entertime) / 45))
+                textbox_y = int(lerp(textbox_y, 0, (delta_enter_time) / 45))
                 current_room.textbox(player_vars, tick - initial_textbox_tick, textbox_y)
             elif not current_room.dialog:
                 sawman.stop = False
@@ -406,7 +413,7 @@ while run:
                         portal_size = [(0, 0)]
 
                 # print(in_door)
-                if pygame.Rect.collidepoint(portal.door, sawman.current_position + (50, 230)):
+                if pygame.Rect.collidepoint(portal.door, sawman.current_position + (50, 239)):
                     if not in_door:
                         player_vars.current_position = sawman.current_position = zwei.current_position = portal.new_position
                         zwei.positions_list = [portal.new_position]
@@ -414,7 +421,7 @@ while run:
                         in_door = True
                         current_room = levels[player_vars.room_index]
                         portals = current_room.portals
-                        entertime = tick
+                        enter_time = tick
                         print(*(r.current_position for r in current_room.inters))
                         ysort = sorted(current_room.inters + [sawman, zwei], key=lambda r: r.current_position.y)
                         wall = current_room.mask
@@ -425,8 +432,9 @@ while run:
                         in_door = False
                 else:
                     in_door = False
-            if tick - entertime < 100 and current_room.bgm:
-                pullup(fontaliased, font_small, screen, bgm, tick - entertime)
+            delta_enter_time: int = tick - enter_time
+            if delta_enter_time < 100 and current_room.bgm:
+                pullup(fontaliased, font_small, screen, bgm, delta_enter_time)
             screen.blit(
                 latertextbg[min(tick - laterdays, 100) // 30],
                 (((tick - 3) / 8) % 2, ((tick - 3) / 4) % 3),

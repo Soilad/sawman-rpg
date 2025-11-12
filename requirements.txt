@@ -2,3 +2,4 @@ pygame-ce
 pygameshader
 pygamevideo
 pytz
+numba
