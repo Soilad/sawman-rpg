@@ -132,6 +132,7 @@ keydown = False
 
 music.set_volume(mvol)
 
+clock = pygame.time.Clock()
 
 while run:
     if (current_menu == Menu.MAIN_MENU) or (current_menu == Menu.SETTINGS):
@@ -449,7 +450,7 @@ while run:
             _add_glitch_effect(screen, 1, battle.enemies, 1280, 720)
             _apply_flicker(screen, tick)
             tick += 1
-    pygame.time.Clock().tick(settings_json["FPS"])
+    clock.tick(settings_json["FPS"])
     pygame.display.update()
 
 
