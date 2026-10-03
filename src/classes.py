@@ -126,7 +126,11 @@ class Chara:
                 - keys[pygame.K_UP]
             ),
         )
-        if self.delta_position.length_squared() and not self.stop and not pygame.mouse.get_visible():
+        if (
+            self.delta_position.length_squared()
+            and not self.stop
+            and not pygame.mouse.get_visible()
+        ):
             player_vars.dialog_index = 0
             player_vars.group = {}
             match self.delta_position.x, self.delta_position.y:
@@ -1083,7 +1087,7 @@ class Room:
         self.wall = pygame.image.load(f"{cwd}/rooms/{room}/wall.png").convert_alpha()
         self.floor = pygame.image.load(f"{cwd}/rooms/{room}/floor.png").convert_alpha()
         self.w, self.h = self.wall.get_size()
-        self.mask = pygame.mask.from_surface(self.wall)
+        self.collisionMask = pygame.mask.from_surface(self.wall)
         self.portals = portals
         self.dialog = dialog
         self.dialog_len, self.rendered_dialog = set_dialog(self.dialog, font_medium, fontaliased)
@@ -1096,7 +1100,7 @@ class Room:
 
     def load(self, a):
         intersaves, cutscene = a
-        for i in range(0, len(self.inters)):
+        for i in range(len(self.inters)):
             self.inters[i].load(intersaves[i])
         self.intersrect = [x.sprite.get_rect(topleft=(x.x, x.y)) for x in self.inters]
         self.dialog = cutscene
@@ -1260,10 +1264,10 @@ class Trader:
                 screen.blit(itemtext, (750, 50 + (60 * item_index) + y_position))
                 item_index += 1
 
-    def load(a, aa):
+    def load(_, _):
         pass
 
-    def save(a):
+    def save(_):
         pass
 
     def move(self, player_vars, room, keys, tick, wall, entertime, ysort, offset):
@@ -1273,8 +1277,8 @@ class Trader:
 class Button:
     thicc = 0
 
-    def __init__(self, id, pos, dim, thicc):
-        self.id = id
+    def __init__(self, text, pos, dim, thicc):
+        self.text = text
         self.pos = pos
         self.dim = dim
         self.thiccmax = thicc
@@ -1287,11 +1291,24 @@ class Button:
         self.rect = pygame.Rect((0, 0), dim)
         # NOTE(soi): yea pygame already has a thing for centering rects, should read the documentation more smsmsmh
         self.rect.center = pos
+        self.font_render = font_small.render(
+            text,
+            fontaliased,
+            (255, 0, 0)
+            if pygame.Rect.collidepoint(self.rect, mpos) and b_togg
+            else (255, 255, 255),
+        )
+
+    def onHovered(self, mpos):
+        hovered = pygame.Rect.collidepoint(self.rect, mpos)
+        return hovered
+
+    def onClicked(self, b_togg):
+        if self.onHovered() and b_togg:
+            return self.id
 
     def draw(self, screen, mpos, b_togg, tab, settings_json):
-        hovered = pygame.Rect.collidepoint(self.rect, mpos)
-
-        if hovered:
+        if self.onHovered():
             if self.thicc < self.thiccmax:
                 self.thicc += 1
                 # self.thicc = lerp(
@@ -1302,7 +1319,6 @@ class Button:
         else:
             self.thicc = max(self.thicc - 1, 0)
             # self.last_tick = tick
-
         scaled_thicc = self.thicc
 
         if scaled_thicc:
@@ -1325,19 +1341,6 @@ class Button:
             border_radius=(self.rect.height // 2),
         )
 
-        text = (
-            f"{self.id}: {settings_json[self.id]}"
-            if self.id in settings_json
-            else self.id
-        )
-        self.text = text
-        font_render = font_small.render(
-            text,
-            fontaliased,
-            (255, 0, 0)
-            if pygame.Rect.collidepoint(self.rect, mpos) and b_togg
-            else (255, 255, 255),
-        )
         screen.blit(
             font_render,
             (
@@ -1345,9 +1348,6 @@ class Button:
                 self.rect.y + (self.thiccmax),
             ),
         )
-
-        if pygame.Rect.collidepoint(self.rect, mpos) and b_togg:
-            return self.id
 
 
 x = 640

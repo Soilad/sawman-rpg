@@ -2,7 +2,7 @@ import pygame
 from func import pullup, _apply_glow, _add_glitch_effect, _apply_flicker
 from pygame.math import clamp, lerp
 from enum import Enum, auto, IntEnum
-from PygameShader.shader import chromatic
+# from PygameShader.shader import chromatic
 from classes import (
     Room,
     player_vars,
@@ -350,16 +350,16 @@ while run:
             else:
                 # print(battle.enemies)
                 battle.render(player_vars, tick, keys, bgm, inventory)
-                screen.blit(
-                    chromatic(
-                        screen,
-                        640,
-                        360,
-                        1 + (0.001 * (abs((tick % 65) - 32) / 8)),
-                        fx=0.001 * (abs((tick % 65) - 32) / 4),
-                    ),
-                    (0, 0),
-                )
+                # screen.blit(
+                #     chromatic(
+                #         screen,
+                #         640,
+                #         360,
+                #         1 + (0.001 * (abs((tick % 65) - 32) / 8)),
+                #         fx=0.001 * (abs((tick % 65) - 32) / 4),
+                #     ),
+                #     (0, 0),
+                # )
                 if not (player_vars.s_health or player_vars.z_health):
                     game = False
                     pygame.mouse.set_visible(not pygame.mouse.get_visible())
