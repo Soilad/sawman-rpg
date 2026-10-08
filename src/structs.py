@@ -49,10 +49,11 @@ class BorderRadius:
 
 @dataclass(slots=True)
 class PlayerData:
-    interactionPoint: Vector2
-    deltaPosition:    Vector2
-    positions:        Queue[Vector2]
-    stop:             bool
+    walkingDirection : int            = field(default_factory=int)
+    interactionPoint : Vector2        = field(default_factory=Vector2)
+    deltaPosition    : Vector2        = field(default_factory=Vector2)
+    positions        : Queue[Vector2] = field(default_factory=Queue)
+    stop             : bool           = field(default=False)
 
 @dataclass(slots=True)
 class Overlays:

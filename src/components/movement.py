@@ -24,7 +24,7 @@ class PlayerMovement(Movement):
         self.speed:    int     = speed
 
     def onMove(self, world) -> tuple[int, int]:
-        walking_direction = 0
+        walking_direction = world.playerData.walkingDirection
         walking_frame     = 0
 
         keys  = world.keys
@@ -51,13 +51,13 @@ class PlayerMovement(Movement):
             walking_frame = (world.tick * 2) // speed % 4
             match world.playerData.deltaPosition.x, world.playerData.deltaPosition.y:
                 case (1, _):
-                    walking_direction = 0
+                    world.playerData.walkingDirection = 0
                 case (_, 1):
-                    walking_direction = 1
+                    world.playerData.walkingDirection = 1
                 case (_, -1):
-                    walking_direction = 2
+                    world.playerData.walkingDirection = 2
                 case (-1, _):
-                    walking_direction = 3
+                    world.playerData.walkingDirection = 3
 
             world.playerData.deltaPosition *= speed
             if not world.playerData.stop:
@@ -66,13 +66,13 @@ class PlayerMovement(Movement):
                         self.position.x
                         + (world.playerData.deltaPosition.x),
                         0,
-                        1280
+                        1279
                     ), 
                     math.clamp(
                         self.position.y
                         + (world.playerData.deltaPosition.y),
                         0,
-                        720
+                        719
                     ),
                 )
 
@@ -89,7 +89,8 @@ class PlayerMovement(Movement):
                     world.playerData.positions.get()
                 else:
                     world.playerData.positions.put(self.position)
-        return walking_frame, walking_direction
+
+        return walking_frame, world.playerData.walkingDirection
 
 @dataclass(slots=True)
 class Chaser(Movement):
