@@ -1,50 +1,55 @@
-import pygame
+from dataclasses import dataclass, field
+
+from pygame import *
+
+from consts import CollisionType, EntityType
 
 # from classes import *
 from interfaces import Movement
 
 
+@dataclass(slots=True)
 class Imovable(Movement):
-    position = pygame.math.Vector2(0, 0)
-    def onMove(self, *_) -> tuple[int, int]:
+    position: Vector2 = field(default_factory=Vector2)
+
+    def onMove(self, world) -> tuple[int, int]:
         return self.position
 
+@dataclass(slots=True)
 class PlayerMovement(Movement):
-    def __init__(
-        self,
-        position: pygame.Vector2,
-        speed:    int,
-        keys:     pygame.key.ScancodeWrapper
-    ):
-        self.position: pygame.Vector2 = position
-        self.speed:    int            = speed
+    position: Vector2 = field(default_factory=Vector2)
 
-    def onMove(self, world, entities, keys) -> tuple[int, int]:
+    def __init__(self, position: Vector2, speed: int):
+        self.position: Vector2 = position
+        self.speed:    int     = speed
+
+    def onMove(self, world) -> tuple[int, int]:
         walking_direction = 0
-        walking_frame = 0
+        walking_frame     = 0
 
-        speed = self.speed << keys[pygame.K_LSHIFT]
-        delta_position = pygame.math.Vector2(
+        keys  = world.keys
+        speed = self.speed << keys[K_LSHIFT]
+        world.playerData.deltaPosition = Vector2(
             (
-                keys[pygame.K_d]
-                - keys[pygame.K_a]
-                + keys[pygame.K_RIGHT]
-                - keys[pygame.K_LEFT]
+                keys[K_d]
+                - keys[K_a]
+                + keys[K_RIGHT]
+                - keys[K_LEFT]
             ),
             (
-                keys[pygame.K_s]
-                - keys[pygame.K_w]
-                + keys[pygame.K_DOWN]
-                - keys[pygame.K_UP]
+                keys[K_s]
+                - keys[K_w]
+                + keys[K_DOWN]
+                - keys[K_UP]
             ),
         )
+
         if (
-            delta_position.length_squared()
-            # and not self.stop
-            # and not pygame.mouse.get_visible()
+            # and not mouse.get_visible()
+            world.playerData.deltaPosition.length_squared()
         ):
             walking_frame = (world.tick * 2) // speed % 4
-            match delta_position.x, delta_position.y:
+            match world.playerData.deltaPosition.x, world.playerData.deltaPosition.y:
                 case (1, _):
                     walking_direction = 0
                 case (_, 1):
@@ -54,55 +59,68 @@ class PlayerMovement(Movement):
                 case (-1, _):
                     walking_direction = 3
 
-        delta_position *= speed
-        final_position = self.position + delta_position
-        # final_position = pygame.Vector2(
-        #     pygame.math.clamp(
-        #         self.position.x
-        #         + (delta_position.x),
-        #         0,
-        #         # room.w -
-        #         100
-        #     ), 
-        #     pygame.math.clamp(
-        #         self.position.y
-        #         + (delta_position.y),
-        #         0,
-        #         # room.h -
-        #         # 239
-        #     ),
-        # )
+            world.playerData.deltaPosition *= speed
+            if not world.playerData.stop:
+                final_position = Vector2(
+                    math.clamp(
+                        self.position.x
+                        + (world.playerData.deltaPosition.x),
+                        0,
+                        1280
+                    ), 
+                    math.clamp(
+                        self.position.y
+                        + (world.playerData.deltaPosition.y),
+                        0,
+                        720
+                    ),
+                )
 
-        if not any(
-            entities.collision.onCollide(final_position) 
-            for entities in entities
-            if entities.id != 0
-        ):
-            self.position = final_position
+                if not any(
+                    entity.collision.onCollide(final_position) & CollisionType.OBSTACLE
+                    for entity in world.levels[world.level]
+                    if entity.type != EntityType.PLAYER
+                ):
+                    self.position = final_position
+
+                world.playerData.interactionPoint = final_position
+
+                if world.playerData.positions.full():
+                    world.playerData.positions.get()
+                else:
+                    world.playerData.positions.put(self.position)
         return walking_frame, walking_direction
 
+@dataclass(slots=True)
 class Chaser(Movement):
     t = 0
-    position = pygame.math.Vector2(0, 0)
+    position: Vector2 = field(default_factory=Vector2)
     targetEntity = None
 
-    def __init__(self, position, speed, shock, enemies, id):
-        self.position: pygame.math.Vector2 = pygame.math.Vector2(position)
-        self.initial_position: pygame.math.Vector2 = pygame.math.Vector2(position)
+    def __init__(
+        self,
+        position,
+        speed,
+        shock,
+        enemies,
+        id,
+    ):
+        self.position: Vector2 = Vector2(position)
+        self.initial_position: Vector2 = Vector2(position)
         self.speed = speed
         self.shock = shock
         self.id = id
-        # self.rect = pygame.Rect(self.current_position, (self.width, self.height))
+        # self.rect = Rect(self.current_position, (self.width, self.height))
 
-    def onMove(self, world, entities, keys) -> tuple[int, int]:
+    def onMove(self, world) -> tuple[int, int]:
         if not self.targetEntity:
-            self.targetEntity = next( x for x in entities if x.id == self.id )
-        if world.tick - world.enterTime > self.shock * 6:
+            self.targetEntity = next( x for x in world.levels[world.level] if x.id == self.id )
+        if world.tick - world.initialTicks.enter > self.shock * 6:
             self.t = min(self.t + (
                 0.1 * self.speed 
                 # / fps
             ), 1)
-            self.position = pygame.math.Vector2.lerp(
+            self.position = Vector2.lerp(
                 self.position,
                 self.targetEntity.movement.position,
                 self.t
@@ -112,7 +130,7 @@ class Chaser(Movement):
             self.position = self.initial_position
             # print(abs(sawman.x - self.x))
             # if (
-            #     pygame.math.Vector2.length_squared(player_vars.current_position - self.current_position) < self.width * self.width * scale
+            #     math.Vector2.length_squared(player_vars.current_position - self.current_position) < self.width * self.width * scale
             # ):
             #     if not (battle.enemies or player_vars.inenem):
             #         music.stop()
@@ -125,3 +143,19 @@ class Chaser(Movement):
             #             self.enemies = ()
             # else:
             #     player_vars.inenem = False
+
+@dataclass(slots=True)
+class RoomMovement(Movement):
+    position: Vector2   = field(default_factory=Vector2)
+    bounds: Rect        = field(default_factory=Rect)
+    def __init__(self, position: Vector2, rect: Rect):
+        self.position = position
+        xMax          = rect.w - 1280
+        yMax          = rect.h - 720
+        self.bounds   = Rect((0, 0), (xMax + 1, yMax + 1))
+
+    def onMove(self, world) -> tuple[int, int]:
+        if self.bounds.collidepoint(world.playerData.deltaPosition-self.position):
+            for entity in world.levels[world.level]:
+                entity.movement.position -= world.playerData.deltaPosition
+                entity.collision.rect.topleft -= world.playerData.deltaPosition

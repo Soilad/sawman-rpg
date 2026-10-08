@@ -1,19 +1,33 @@
 # from classes import Room, Obj, Portal, Chaser, cwd, Trader
 # import custom_funcs 
+from queue import Queue
+
 import pygame
+from pygame import Color, Rect, Vector2
 
 from components import (
+    BoxUI,
+    ButtonUI,
     Chaser,
+    CollisionType,
+    Commands,
+    DialogueCommand,
     Imovable,
+    NoInteract,
     Obstacle,
     PlayerMovement,
+    RectOverlay,
     Room,
+    RoomMovement,
+    SignalCommand,
     Sprite,
     Spritesheet,
-    Uncollidable,
+    SurfaceOverlay,
     Wall,
 )
-from structs import Entity, World
+from consts import FONT_ALIASED, DirectionUI, EntityType, Signal, font_medium
+from func import lerp
+from structs import Entity, InitialTicks, Overlays, PlayerData, World, BorderRadius
 
 # levels = [
 #     Room(
@@ -392,10 +406,9 @@ from structs import Entity, World
 # ]
 
 pygame.init()
-pygame.font.init()
 pygame.mixer.init(22050, -16, 2, 1024)
 screen = pygame.display.set_mode(
-    (1280, 720,),
+    (1280, 720),
     # pygame.FULLSCREEN | 
     pygame.DOUBLEBUF | 
     pygame.SCALED,
@@ -403,34 +416,146 @@ screen = pygame.display.set_mode(
 )
 keys = pygame.key.get_pressed()
 
-world = World(
-    tick = 0,
-    enterTime = 0,
-    dialogueIndex = 0,
-    renderOverlays = {}
-)
-
 levels = [
-    Entity(
-        collision = Obstacle(10, 20, 100, 200),
-        movement  = PlayerMovement(
-            pygame.math.Vector2(640, 700),
-            5,
-            keys
-        ),
-        render    = Spritesheet("./sprites/sawman.png", 100, 239),
-        id        = 0,
-        ),
-    Entity(
-        collision = Wall("soi"),
-        movement  = Imovable(),
-        render    = Room("soi"),
-        id        = 1,
-        ),
-    Entity(
-        collision = Uncollidable(),
-        movement  = Chaser((0, 0), 0.01, 10, [], 0),
-        render    = Sprite("./sprites/npc/contractman.png"),
-        id        = 2,
-        ),
+    [ 
+         Entity(
+            collision = Obstacle(
+                pygame.Rect(
+                    640,
+                    720,
+                    100,
+                    200
+                )
+            ),
+            movement  = PlayerMovement(
+                pygame.math.Vector2(640, 560),
+                10,
+            ),
+            interact  = NoInteract(),
+            render    = Spritesheet("./sprites/sawman.png", 100, 239),
+            type      = EntityType.PLAYER,
+            id        = 0
+            ),
+        Entity(
+            collision = Wall("soi"),
+            # movement  = Imovable(),
+            movement  = RoomMovement(
+                Vector2(0, 0),
+                Rect(
+                    (0, 0),
+                    (1780, 720)
+                )
+            ),
+            interact  = NoInteract(),
+            render    = Room("soi"),
+            type      = EntityType.ROOM,
+            id        = 1
+            ),
+        Entity(
+            collision = Obstacle(
+                pygame.Rect(
+                    10,
+                    20,
+                    50,
+                    200
+                ),
+                CollisionType.INTERACT
+            ),
+            # movement   = Chaser((600, 720), 0.00, 10, [], 0),
+            movement  = Imovable(position = Vector2(600, 720)),
+            interact  = Commands(
+                [
+                    DialogueCommand(
+                        expression = "ono",
+                        person     = "zweistein",
+                        text       = "..."
+                    ),
+                    DialogueCommand(
+                        expression = "sus",
+                        person     = "sawman",
+                        text       = "this is a test of me rewriting this"
+                    ),
+                    SignalCommand(Signal.CLEAR_COMMANDS)
+                ],
+            ),
+            render    = Sprite("./sprites/npc/contractman.png"),
+            type      = EntityType.ENTITY,
+            id        = 2,
+        ), 
+    ]
 ]
+
+world = World(
+    tick          = 0,
+    keys          = None,
+    mouse         = None,
+    level         = 0,
+    levels        = levels,
+    clicked       = False,
+    commandIndex  = 0,
+    initialTicks  = InitialTicks(),
+    showInventory = False,
+    overlays      = Overlays(
+        {
+            "textbox": ButtonUI(
+                outlineColor = Color(255, 0, 0, 64),
+                onClick      = lambda x: print(x.initialTicks.interact),
+                maxWidth     = 4,
+                radius       = BorderRadius(50),
+                color        = Color(0, 0, 0, 64),
+                rect         = Rect(
+                    (0, 720),
+                    (1280, 200)
+                ),
+                z            = 5,
+            ),
+            "inventory": BoxUI(
+                outlineColor = Color(255, 0, 0, 64),
+                maxWidth     = 10,
+                radius       = BorderRadius(10, 50, 50, 10),
+                color        = Color(0, 0, 0, 64),
+                rect         = Rect(
+                    (320, 20),
+                    (940, 680)
+                ),
+                padding      = Rect(
+                    (20, 20),
+                    (1, 10)
+                ),
+                z            = 5,
+
+                direction = DirectionUI.VERTICAL,
+                children  = [
+                    ButtonUI(
+                        outlineColor = Color(255, 0, 0, 64),
+                        onClick      = lambda x: print(f"fish{x}"),
+                        surface      = SurfaceOverlay(
+                            z        = 0,
+                            position = Vector2(0, 0),
+                            surface  = font_medium.render(
+                                f"{x}",
+                                FONT_ALIASED,
+                                (255, 255, 255)
+                            ),
+                        ),
+                        maxWidth = 4,
+                        radius   = BorderRadius(10, 50, 50, 10),
+                        color    = Color(0, 0, 0, 64),
+                        rect     = Rect(
+                            (0, 0),
+                            (1280, 80)
+                            ),
+                        z        = 5,
+                    )
+                    for x in range(5)
+                ]
+            )
+        },
+    ),
+    playerData = PlayerData(
+        interactionPoint = Vector2(0, 0),
+        deltaPosition    = Vector2(0, 0),
+        positions        = Queue(maxsize=16),
+        stop             = False
+    )
+)

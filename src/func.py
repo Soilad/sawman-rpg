@@ -1,22 +1,30 @@
-from pygame import (
-    Rect,
-    draw,
-    transform,
-    Surface,
-    SRCALPHA,
-    BLEND_RGBA_ADD,
-    BLEND_RGBA_MIN,
-)
 import random
+from textwrap import wrap
+from typing import TYPE_CHECKING
+
 from numba import jit
+from pygame import (
+    BLEND_RGBA_MIN,
+    SRCALPHA,
+    Rect,
+    Surface,
+    Vector2,
+    draw,
+    font,
+    transform,
+)
+
+from consts import FONT_ALIASED, font_medium
+
+if TYPE_CHECKING:
+    from components.overlay import SurfaceOverlay
 
 
 @jit
-def scroll(s):
-    l = []
-    for i in range(len(s) + 1):
-        l.append(s[:i])
-    return l
+def scroll(string: str):
+    _len = len(string) + 1
+    for i in range(1, _len):
+        yield string[:i]
 
 
 def glow(surface, thicc, color):
@@ -88,15 +96,6 @@ def coler(x):
         (max(min(abs((x % 360) - 180), 120), 60) - 60) * 255 / 60,
     )
 
-@jit
-def putlines(text):
-    nllimit = 8
-    # text = [f'{x} ' for x in f'{text.capitalize()}'.split()]
-    text = f"{text.capitalize()}".replace(" ", " ☎").split("☎")
-    for nl in range(nllimit - 1, len(text), nllimit):
-        text.insert(nl, "\n")
-    return "".join(text)
-
 def giveable(inventory: dict[tuple[str, int], int], items_given: dict[tuple[str, int], int]) -> bool:
     # if items_given:
     #     for item in items_given:
@@ -153,18 +152,57 @@ def bar(screen, health, pos, colour=(0, 0, 0), radius=10):
 def lognt(x):
     return x * 2 / pow(10, (len(f"{int(x)}" ) - 1))
 
-def set_dialog(dialog, font, fontaliased):
-    dialog_len = len(dialog)
-    rendered_dialog = [
-        scroll(x) for x in [putlines(x[1]) for x in dialog]
-    ]
-    for i in rendered_dialog:
-        idex = rendered_dialog.index(i)
-        for j in i:
-            jdex = i.index(j)
-            rendered_dialog[idex][jdex] = [
-                font.render(k, fontaliased, (255, 255, 255))
-                for k in rendered_dialog[idex][jdex].split("\n")
-            ]
-    return dialog_len, rendered_dialog
+def set_dialog(
+    text: str,
+    font: font.Font,
+    position: Vector2 = (0, 0),
+    width: int = 40,
+) -> list[SurfaceOverlay]:
+    """
+    One overlay per typed character, each holding every line revealed so far.
+    The full text is wrapped up front so words don't jump lines while typing.
+    """
+    # imported here to avoid a cycle: components -> interfaces -> func
+    from components.overlay import SurfaceOverlay
 
+    lines       = wrap(text, width=width)
+    if not lines:
+        return []
+    line_height = font.get_linesize()
+    box_size    = (
+        max(font.size(line)[0] for line in lines),
+        line_height * len(lines),
+    )
+
+    frames = []
+    for shown in range(1, sum(map(len, lines)) + 1):
+        surface   = Surface(box_size, flags=SRCALPHA)
+        remaining = shown
+        for index, line in enumerate(lines):
+            part       = line[:remaining]
+            remaining -= len(part)
+            surface.blit(
+                font.render(part, FONT_ALIASED, (255, 255, 255,)),
+                (0, index * line_height)
+            )
+            if remaining <= 0:
+                break
+        frames.append(SurfaceOverlay(
+            surface  = surface,
+            position = Vector2(position),
+            z        = 6,
+        ))
+    return frames
+
+def lerp(_from, to, rate=10):
+    return round(
+        (
+            (rate - 1)*_from
+            + to
+        ) / rate,
+        1
+    )
+
+if __name__ == "__main__":
+    from pprint import pp
+    pp([x for x in set_dialog("loren ipsum dolor set amet", font_medium)])
