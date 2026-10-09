@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pygame import Surface, Vector2, image
 
 import func
-from interfaces import Render
+from Interfaces import IRenderable
 
 
 @dataclass(slots=True)
@@ -13,9 +13,9 @@ class Invisible:
         pass
 
 @dataclass(slots=True)
-class Spritesheet(Render):
+class Spritesheet(IRenderable):
     def __init__(self, sprite, width, height):
-        self.spritesheet: dict[tuple[int, int]: Surface] = func.clip(
+        self.spritesheet: dict[tuple[int, int], Surface] = func.clip(
             image.load(sprite).convert_alpha(),
             width,
             height
@@ -26,12 +26,12 @@ class Spritesheet(Render):
         screen.blit(self.spritesheet[sprite_pos], position - self.blitOffset)
 
 @dataclass(slots=True)
-class Sprite(Render):
+class Sprite(IRenderable):
     def __init__(self, sprite):
         self.sprite = image.load(sprite).convert_alpha()
         self.blitOffset = Vector2(self.sprite.get_width() // 2, self.sprite.get_height())
 
-    def onRender(self, screen, position, _):
+    def onRender(self, screen, position, sprite_pos) -> None:
         screen.blit(
             self.sprite,
             position 
@@ -39,7 +39,7 @@ class Sprite(Render):
         )
 
 @dataclass(slots=True)
-class Room(Render):
+class Room(IRenderable):
     def __init__(
         self,
         room,
@@ -48,6 +48,6 @@ class Room(Render):
         self.wall  = image.load(f"./rooms/{room}/wall.png").convert_alpha()
         self.floor = image.load(f"./rooms/{room}/floor.png").convert_alpha()
 
-    def onRender(self, screen, position, _):
+    def onRender(self, screen, position, sprite_pos) -> None:
         screen.blit(self.floor, position)
         screen.blit(self.wall,  position)

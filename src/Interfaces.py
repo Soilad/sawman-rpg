@@ -1,24 +1,32 @@
-from dataclasses import dataclass
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from pygame import Surface, Vector2
+from pygame import Rect, Vector2
 
-from consts import CollisionType, Signal
-from func import lerp
+from consts import AlignUI, Signal
 
 if TYPE_CHECKING:
+    from pygame import Surface
+
+    from consts import CollisionType
     from structs import World
 
 
-class Movement:
-    position: Vector2 = Vector2(0, 0)
-    def onMove(self, world, entities, keys) -> tuple[int, int]:
+@dataclass
+class IMovable(ABC):
+    position: Vector2 = field(default_factory=Vector2)
+
+    @abstractmethod
+    def onMove(self, world) -> tuple[int, int]:
         """
         Handle movement in the specified direction.
         """
         raise NotImplementedError("onMove method must be implemented by subclasses.")
 
-class Interact:
+@dataclass
+class IInteractable(ABC):
+    @abstractmethod
     def onInteract(self, world):
         """
         Handle interaction with the object.
@@ -34,7 +42,9 @@ class Interact:
         """
         raise NotImplementedError("onInteract method must be implemented by subclasses.")
 
-class Render:
+@dataclass
+class IRenderable(ABC):
+    @abstractmethod
     def onRender(self, screen, position, sprite_pos) -> None:
         """
         Handle rendering of the object.
@@ -44,8 +54,8 @@ class Render:
         """
         raise NotImplementedError("onRender method must be implemented by subclasses.")
 
-@dataclass(slots=True)
-class Command:
+@dataclass
+class ICommandable(ABC):
     emitted = False
     signal  = Signal.OK
     def emit(self, world: World) -> Signal:
@@ -57,23 +67,36 @@ class Command:
         return self.signal
 
 
+    @abstractmethod
     def init(self, world: World) -> None:
         pass
 
+    @abstractmethod
     def refresh(self, world: World) -> None:
         pass
 
     def reset(self) -> None:
         self.emitted = False
 
-class UI:
-    z: int
+@dataclass
+class ICollidable(ABC):
+    align: tuple[AlignUI, AlignUI]
+    rect:  Rect = field(default_factory=Rect)
+    @abstractmethod
+    def onCollide(self, point: Vector2) -> CollisionType:
+        pass
+
+class UI(ABC):
+    z    : int                     = 0
+    rect : Rect                    = Rect()
+    align: tuple[AlignUI, AlignUI] = (AlignUI.START, AlignUI.START)
+
+    @abstractmethod
     def draw(self, screen: Surface) -> None:
         pass
 
-    def onHover(self, world: World) -> bool:
+    def update(self) -> None:
         pass
 
-class Collision:
-    def onCollide(self, point: Vector2) -> CollisionType:
-        pass
+    def onHover(self, world: World) -> bool:
+        return False

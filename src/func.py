@@ -1,6 +1,7 @@
 import random
+from collections.abc import Callable
 from textwrap import wrap
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from numba import jit
 from pygame import (
@@ -15,6 +16,7 @@ from pygame import (
 )
 
 from consts import FONT_ALIASED, font_medium
+from structs import World
 
 if TYPE_CHECKING:
     from components.overlay import SurfaceOverlay
@@ -65,7 +67,7 @@ def shadow(surface, thicc, color):
 #     image = surface.subsurface(handle_surface.get_clip())
 #     return image.copy().convert_alpha()
 
-def clip(surface: Surface , sprite_width: int, sprite_height: int) -> dict[tuple[int,int]:Surface]:
+def clip(surface: Surface , sprite_width: int, sprite_height: int) -> dict[tuple[int,int], Surface]:
     spritesheet_dict: dict = {}
     sheet_width, sheet_height = surface.get_size()
     for x in range(sheet_width//sprite_width + 1):
@@ -104,7 +106,7 @@ def giveable(inventory: dict[tuple[str, int], int], items_given: dict[tuple[str,
     # return True
     return all([item_count + inventory.get(item, 0) >= 0 for item, item_count in items_given.items()])
 
-def give_items(inventory: dict[tuple[str, int]: int], items_given: dict[tuple[str, int]: int]):
+def give_items(inventory: dict[tuple[str, int], int], items_given: dict[tuple[str, int], int]):
     for item in items_given:
         if inventory.get(item, 0) + items_given[item] > 0:
             inventory[item] = inventory.get(item, 0) + items_given[item]
@@ -155,54 +157,76 @@ def lognt(x):
 def set_dialog(
     text: str,
     font: font.Font,
-    position: Vector2 = (0, 0),
+    position: Vector2 = Vector2(0, 0),
     width: int = 40,
-) -> list[SurfaceOverlay]:
+) -> list[list[SurfaceOverlay]]:
     """
-    One overlay per typed character, each holding every line revealed so far.
+    frames[time][line]: one frame per typed character, each holding one
+    overlay per line revealed so far (the last one partially typed).
     The full text is wrapped up front so words don't jump lines while typing.
     """
     # imported here to avoid a cycle: components -> interfaces -> func
     from components.overlay import SurfaceOverlay
 
     lines       = wrap(text, width=width)
-    if not lines:
-        return []
     line_height = font.get_linesize()
-    box_size    = (
-        max(font.size(line)[0] for line in lines),
-        line_height * len(lines),
-    )
 
-    frames = []
-    for shown in range(1, sum(map(len, lines)) + 1):
-        surface   = Surface(box_size, flags=SRCALPHA)
-        remaining = shown
-        for index, line in enumerate(lines):
-            part       = line[:remaining]
-            remaining -= len(part)
-            surface.blit(
-                font.render(part, FONT_ALIASED, (255, 255, 255,)),
-                (0, index * line_height)
-            )
-            if remaining <= 0:
-                break
-        frames.append(SurfaceOverlay(
-            surface  = surface,
-            position = Vector2(position),
+    def line_overlay(index: int, part: str) -> SurfaceOverlay:
+        return SurfaceOverlay(
+            surface  = font.render(part, FONT_ALIASED, (255, 255, 255,)),
+            position = Vector2(position) + Vector2(0, index * line_height),
             z        = 6,
-        ))
+        )
+
+    frames:   list[list[SurfaceOverlay]] = []
+    finished: list[SurfaceOverlay]       = []
+    for index, line in enumerate(lines):
+        for shown in range(1, len(line) + 1):
+            frames.append(finished + [line_overlay(index, line[:shown])])
+        # the fully typed line is the last frame's overlay; reuse it from now on
+        finished = frames[-1]
     return frames
 
-def lerp(_from, to, rate=10):
-    return round(
+def lerp(initial, final, rate=4):
+    return (
         (
-            (rate - 1)*_from
-            + to
-        ) / rate,
-        1
+            (rate - 1)*initial
+            + final
+        ) / rate
     )
+
+
+def UIanimation(
+    a_object: Any,
+    a_attribute: list[str],
+    a_final,
+    rate: int = 4,
+) -> Callable[[World], bool]:
+    # walk ["a", "b", "c"] down to a_object.a.b, which owns "c"
+    *path, attribute = a_attribute
+    _object = a_object
+    for name in path:
+        _object = getattr(_object, name)
+
+    # keep our own float copy instead of re-reading the attribute each frame:
+    # Rect fields truncate to int, which throws away sub-pixel progress and
+    # stalls the animation a few px short of a_final
+    position = float(getattr(_object, attribute))
+
+    def animation(world: World) -> bool:
+        nonlocal position
+        position = lerp(position, a_final, rate)
+        if abs(a_final - position) < 0.5:
+            position = a_final
+        setattr(_object, attribute, position)
+        a_object.update()
+        return position == a_final
+
+    animation.target = (_object, attribute)  # pyright: ignore[reportFunctionMemberAccess]
+    return animation
+
+
 
 if __name__ == "__main__":
     from pprint import pp
-    pp([x for x in set_dialog("loren ipsum dolor set amet", font_medium)])
+    pp([x for x in set_dialog("loren ipsum dolor set ament", font_medium)])

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from queue import Queue
 
 from pygame import Vector2
+from pygame.key import ScancodeWrapper
 
 from components import *
 from consts import EntityType
@@ -10,10 +11,10 @@ from consts import EntityType
 @dataclass(slots=True)
 class Entity:
     type:       EntityType
-    collision:  Collision
-    movement:   Movement
-    interact:   Interact
-    render:     Render
+    collision:  ICollidable
+    movement:   IMovable
+    interact:   IInteractable
+    render:     IRenderable
     id:         int
 
 @dataclass(slots=True)
@@ -50,6 +51,7 @@ class BorderRadius:
 @dataclass(slots=True)
 class PlayerData:
     walkingDirection : int            = field(default_factory=int)
+    walkingFrame     : int            = field(default_factory=int)
     interactionPoint : Vector2        = field(default_factory=Vector2)
     deltaPosition    : Vector2        = field(default_factory=Vector2)
     positions        : Queue[Vector2] = field(default_factory=Queue)
@@ -61,7 +63,7 @@ class Overlays:
     overlays: dict[str, UI]
     keys: list[str]
 
-    def __init__(self, overlays: Dict[str, Overlay]):
+    def __init__(self, overlays: dict[str, UI]):
         self.uiKeys   = list(overlays.keys())
         self.overlays = overlays
         self.keys     = self.uiKeys
@@ -70,7 +72,7 @@ class Overlays:
         # self.overlays.update(self.active)
         self.keys.sort(key=lambda x: self.overlays[x].z)
 
-    def add(self, overlays: dict[str, Overlay]) -> None:
+    def add(self, overlays: dict[str, UI]) -> None:
         self.keys = list(
             set(
                 self.keys 
@@ -102,9 +104,10 @@ class World:
     initialTicks:  InitialTicks
     playerData:    PlayerData
     overlays:      Overlays
+    animator:      list[Callable[[World], bool]]
     clicked:       bool
     levels:        list[list[Entity]]
     level:         int
-    mouse:         pygame.mouse
-    keys:          pygame.keys
+    mouse:         type
+    keys:          ScancodeWrapper
     tick:          int

@@ -1,5 +1,6 @@
 # from classes import Room, Obj, Portal, Chaser, cwd, Trader
 # import custom_funcs 
+from collections.abc import Callable
 from queue import Queue
 
 import pygame
@@ -12,7 +13,7 @@ from components import (
     CollisionType,
     Commands,
     DialogueCommand,
-    Imovable,
+    Immovable,
     NoInteract,
     Obstacle,
     PlayerMovement,
@@ -25,9 +26,9 @@ from components import (
     SurfaceOverlay,
     Wall,
 )
-from consts import FONT_ALIASED, DirectionUI, EntityType, Signal, font_medium
-from func import lerp
-from structs import Entity, InitialTicks, Overlays, PlayerData, World, BorderRadius
+from consts import FONT_ALIASED, AlignUI, DirectionUI, EntityType, Signal, font_medium
+from func import UIanimation, lerp
+from structs import BorderRadius, Entity, InitialTicks, Overlays, PlayerData, World
 
 # levels = [
 #     Room(
@@ -462,7 +463,7 @@ levels = [
                 CollisionType.INTERACT
             ),
             # movement   = Chaser((600, 720), 0.00, 10, [], 0),
-            movement  = Imovable(position = Vector2(600, 720)),
+            movement  = Immovable(position = Vector2(600, 720)),
             interact  = Commands(
                 [
                     DialogueCommand(
@@ -492,14 +493,15 @@ world = World(
     level         = 0,
     levels        = levels,
     clicked       = False,
+    animator  = [],
     commandIndex  = 0,
     initialTicks  = InitialTicks(),
     showInventory = False,
     overlays      = Overlays(
         {
-            "textbox": ButtonUI(
+            "textbox": BoxUI(
                 outlineColor = Color(255, 0, 0, 64),
-                onClick      = lambda x: print(x.initialTicks.interact),
+                # onClick      = lambda x: print(x.initialTicks.interact),
                 maxWidth     = 4,
                 radius       = BorderRadius(50),
                 color        = Color(0, 0, 0, 64),
@@ -508,6 +510,65 @@ world = World(
                     (1280, 200)
                 ),
                 z            = 5,
+                children     = [],
+                direction    = DirectionUI.VERTICAL,
+                padding      = Rect(
+                    (20, 20),
+                    (0, 0)
+                )
+            ),
+            "stats": BoxUI(
+                outlineColor = Color(255, 0, 0, 64),
+                maxWidth     = 10,
+                radius       = BorderRadius(50, 10, 10, 50),
+                color        = Color(0, 0, 0, 64),
+                rect         = Rect(
+                    (20, 19),
+                    (280, 680)
+                ),
+                padding      = Rect(
+                    (20, 20),
+                    (1, 10)
+                ),
+                z            = 5,
+
+                direction = DirectionUI.VERTICAL,
+                children  = [
+                    ButtonUI(
+                        outlineColor = Color(255, 0, 0, 64),
+                        onClick      = lambda x: print(f"fish{x}"),
+                        surfaces     = [
+                            SurfaceOverlay(
+                                z        = 0,
+                                position = Vector2(0, 0),
+                                surface = font_medium.render(
+                                    f"{x}",
+                                    FONT_ALIASED,
+                                    (255, 255, 255)
+                                ),
+                            ),
+                            SurfaceOverlay(
+                                z        = 0,
+                                align    = (AlignUI.CENTER, AlignUI.CENTER),
+                                position = Vector2(0, 0),
+                                surface  = font_medium.render(
+                                    f"{x}",
+                                    FONT_ALIASED,
+                                    (255, 255, 255),
+                                ),
+                            ),
+                        ],
+                        maxWidth = 4,
+                        radius   = BorderRadius(50, 10, 10, 50),
+                        color    = Color(0, 0, 0, 64),
+                        rect     = Rect(
+                            (0, 0),
+                            (1280, 80)
+                            ),
+                        z        = 5,
+                    )
+                    for x in range(5)
+                ]
             ),
             "inventory": BoxUI(
                 outlineColor = Color(255, 0, 0, 64),
@@ -529,15 +590,27 @@ world = World(
                     ButtonUI(
                         outlineColor = Color(255, 0, 0, 64),
                         onClick      = lambda x: print(f"fish{x}"),
-                        surface      = SurfaceOverlay(
-                            z        = 0,
-                            position = Vector2(0, 0),
-                            surface  = font_medium.render(
-                                f"{x}",
-                                FONT_ALIASED,
-                                (255, 255, 255)
+                        surfaces     = [
+                            SurfaceOverlay(
+                                z        = 0,
+                                position = Vector2(0, 0),
+                                surface = font_medium.render(
+                                    f"{x}",
+                                    FONT_ALIASED,
+                                    (255, 255, 255)
+                                ),
                             ),
-                        ),
+                            SurfaceOverlay(
+                                z        = 0,
+                                align    = (AlignUI.CENTER, AlignUI.CENTER),
+                                position = Vector2(0, 0),
+                                surface  = font_medium.render(
+                                    f"{x}",
+                                    FONT_ALIASED,
+                                    (255, 255, 255),
+                                ),
+                            ),
+                        ],
                         maxWidth = 4,
                         radius   = BorderRadius(10, 50, 50, 10),
                         color    = Color(0, 0, 0, 64),

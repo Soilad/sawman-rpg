@@ -1,26 +1,26 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from pygame import Color, Rect, Vector2, image
+from pygame import Vector2, image
 
-from components.overlay import RectOverlay, SurfaceOverlay
+from components.overlay import SurfaceOverlay
 from consts import TICKS_PER_CHAR, X_OFFSETS, Signal, font_medium
-from func import lerp, set_dialog
-from interfaces import Command
+from func import UIanimation, set_dialog
+from Interfaces import UI, ICommandable
 
 if TYPE_CHECKING:
     from structs import World
 
 
 @dataclass(slots=True)
-class DialogueCommand(Command):
+class DialogueCommand(ICommandable):
     expression: str
     person:     str
     text:       str
 
-    dialogue:   list[SurfaceOverlay]
-    sprite:     SurfaceOverlay
-    name:       SurfaceOverlay
+    dialogue:   list[UI]
+    sprite:     UI
+    name:       UI
     emitted:    bool = field(default=False)
     def __init__(
         self,
@@ -62,22 +62,23 @@ class DialogueCommand(Command):
                 "name": self.name,
             }
         )
-        world.overlays.update()
+        world.animator.append(
+            UIanimation(
+                world.overlays.overlays["textbox"],
+                ["rect", "y"],
+                540
+            )
+        )
 
     def refresh(self, world: World):
-        world.overlays.overlays["textbox"].rect.y = lerp(
-            world.overlays.overlays["textbox"].rect.y,
-            440
-        )
         frame = (world.tick - world.initialTicks.enter) // TICKS_PER_CHAR
-        world.overlays.add(
-            {
-                "text": self.dialogue[min(frame, len(self.dialogue) - 1)],
-            }
-        )
+        print(self.dialogue[min(frame, len(self.dialogue) - 1)])
+        world.overlays.overlays["textbox"].children = self.dialogue[min(frame, len(self.dialogue) - 1)]
+        world.overlays.overlays["textbox"].update()
+
 
 @dataclass(slots=True)
-class SignalCommand(Command):
+class SignalCommand(ICommandable):
     signal:  Signal
     emitted: bool = field(default=False)
 
@@ -85,6 +86,10 @@ class SignalCommand(Command):
         world.overlays.clear()
 
     def refresh(self, world: World):
-        world.overlays.overlays["textbox"].rect.y = (
-            world.overlays.overlays["textbox"].rect.y + 720
-        ) >> 1
+        world.animator.append(
+            UIanimation(
+                world.overlays.overlays["textbox"],
+                ["rect", "y"],
+                720
+            )
+        )

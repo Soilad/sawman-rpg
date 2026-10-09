@@ -1,20 +1,23 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from consts import FONT_ALIASED, CollisionType, Signal
 
 # from func import give_items, glow
-from interfaces import Command, Interact
+from Interfaces import ICommandable, IInteractable
 
+if TYPE_CHECKING:
+    from structs import World
 
 @dataclass(slots=True)
-class NoInteract(Interact):
-    def onInteract(self, screen, surface, world, Inventory, b_togg, text_scroll, y_position):
+class NoInteract(IInteractable):
+    def onInteract(self, world: World):
         pass
 
 @dataclass(slots=True)
-class Commands(Interact):
-    commands: list[Command]
-    def __init__(self, commands: list[Command]):
+class Commands(IInteractable):
+    commands: list[ICommandable]
+    def __init__(self, commands: list[ICommandable]):
         self.commands = commands
         self.len      = len(self.commands)
         # self.len, self.rendered_dialog = set_dialog(self.dialog, font_medium, FONT_ALIASED)

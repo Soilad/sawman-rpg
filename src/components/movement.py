@@ -1,46 +1,46 @@
 from dataclasses import dataclass, field
 
-from pygame import *
+import pygame
 
 from consts import CollisionType, EntityType
 
 # from classes import *
-from interfaces import Movement
+from Interfaces import IMovable
 
 
 @dataclass(slots=True)
-class Imovable(Movement):
-    position: Vector2 = field(default_factory=Vector2)
+class Immovable(IMovable):
+    position: pygame.Vector2 = field(default_factory=pygame.Vector2)
 
     def onMove(self, world) -> tuple[int, int]:
-        return self.position
+        return (0, 0)
 
 @dataclass(slots=True)
-class PlayerMovement(Movement):
-    position: Vector2 = field(default_factory=Vector2)
+class PlayerMovement(IMovable):
+    position: pygame.Vector2 = field(default_factory=pygame.Vector2)
 
-    def __init__(self, position: Vector2, speed: int):
-        self.position: Vector2 = position
+    def __init__(self, position: pygame.Vector2, speed: int):
+        self.position: pygame.Vector2 = position
         self.speed:    int     = speed
 
     def onMove(self, world) -> tuple[int, int]:
         walking_direction = world.playerData.walkingDirection
-        walking_frame     = 0
+        walking_frame     = world.playerData.walkingFrame
 
         keys  = world.keys
-        speed = self.speed << keys[K_LSHIFT]
-        world.playerData.deltaPosition = Vector2(
+        speed = self.speed << keys[pygame.K_LSHIFT]
+        world.playerData.deltaPosition = pygame.Vector2(
             (
-                keys[K_d]
-                - keys[K_a]
-                + keys[K_RIGHT]
-                - keys[K_LEFT]
+                keys[pygame.K_d]
+                - keys[pygame.K_a]
+                + keys[pygame.K_RIGHT]
+                - keys[pygame.K_LEFT]
             ),
             (
-                keys[K_s]
-                - keys[K_w]
-                + keys[K_DOWN]
-                - keys[K_UP]
+                keys[pygame.K_s]
+                - keys[pygame.K_w]
+                + keys[pygame.K_DOWN]
+                - keys[pygame.K_UP]
             ),
         )
 
@@ -48,7 +48,7 @@ class PlayerMovement(Movement):
             # and not mouse.get_visible()
             world.playerData.deltaPosition.length_squared()
         ):
-            walking_frame = (world.tick * 2) // speed % 4
+            world.playerData.walkingFrame = (world.tick * 2) // speed % 4
             match world.playerData.deltaPosition.x, world.playerData.deltaPosition.y:
                 case (1, _):
                     world.playerData.walkingDirection = 0
@@ -61,14 +61,14 @@ class PlayerMovement(Movement):
 
             world.playerData.deltaPosition *= speed
             if not world.playerData.stop:
-                final_position = Vector2(
-                    math.clamp(
+                final_position = pygame.Vector2(
+                    pygame.math.clamp(
                         self.position.x
                         + (world.playerData.deltaPosition.x),
                         0,
                         1279
                     ), 
-                    math.clamp(
+                    pygame.math.clamp(
                         self.position.y
                         + (world.playerData.deltaPosition.y),
                         0,
@@ -89,13 +89,12 @@ class PlayerMovement(Movement):
                     world.playerData.positions.get()
                 else:
                     world.playerData.positions.put(self.position)
-
-        return walking_frame, world.playerData.walkingDirection
+        return walking_frame, walking_direction
 
 @dataclass(slots=True)
-class Chaser(Movement):
+class Chaser(IMovable):
     t = 0
-    position: Vector2 = field(default_factory=Vector2)
+    position: pygame.Vector2 = field(default_factory=pygame.Vector2)
     targetEntity = None
 
     def __init__(
@@ -106,8 +105,8 @@ class Chaser(Movement):
         enemies,
         id,
     ):
-        self.position: Vector2 = Vector2(position)
-        self.initial_position: Vector2 = Vector2(position)
+        self.position: pygame.Vector2 = pygame.Vector2(position)
+        self.initial_position: pygame.Vector2 = pygame.Vector2(position)
         self.speed = speed
         self.shock = shock
         self.id = id
@@ -121,7 +120,7 @@ class Chaser(Movement):
                 0.1 * self.speed 
                 # / fps
             ), 1)
-            self.position = Vector2.lerp(
+            self.position = pygame.Vector2.lerp(
                 self.position,
                 self.targetEntity.movement.position,
                 self.t
@@ -144,19 +143,21 @@ class Chaser(Movement):
             #             self.enemies = ()
             # else:
             #     player_vars.inenem = False
+        return (0, 0) # TODO: make chasers animated with Spritesheets
 
 @dataclass(slots=True)
-class RoomMovement(Movement):
-    position: Vector2   = field(default_factory=Vector2)
-    bounds: Rect        = field(default_factory=Rect)
-    def __init__(self, position: Vector2, rect: Rect):
+class RoomMovement(IMovable):
+    position: pygame.Vector2   = field(default_factory=pygame.Vector2)
+    bounds: pygame.Rect        = field(default_factory=pygame.Rect)
+    def __init__(self, position: pygame.Vector2, rect: pygame.Rect):
         self.position = position
         xMax          = rect.w - 1280
         yMax          = rect.h - 720
-        self.bounds   = Rect((0, 0), (xMax + 1, yMax + 1))
+        self.bounds   = pygame.Rect((0, 0), (xMax + 1, yMax + 1))
 
     def onMove(self, world) -> tuple[int, int]:
         if self.bounds.collidepoint(world.playerData.deltaPosition-self.position):
             for entity in world.levels[world.level]:
                 entity.movement.position -= world.playerData.deltaPosition
                 entity.collision.rect.topleft -= world.playerData.deltaPosition
+        return (0, 0)

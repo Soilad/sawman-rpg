@@ -2,18 +2,17 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from pygame import Color, Rect, Surface, Vector2, draw
+from pygame import Color, Rect, Surface, draw
 
 from consts import AlignUI, DirectionUI
 from func import lerp
-from interfaces import UI
+from Interfaces import UI
 from structs import BorderRadius
 
 if TYPE_CHECKING:
     from structs import World
 
 
-@dataclass(slots=True)
 class ButtonUI(UI):
     outlineColor: Color
     onClick:      Callable[[World], None]
@@ -23,8 +22,7 @@ class ButtonUI(UI):
     rect:         Rect
     z:            int
     align:        tuple[AlignUI, AlignUI]
-    _width:       int
-    surface:      Surface|None
+    _width:       float = 0
 
     def __init__(
         self,
@@ -35,39 +33,42 @@ class ButtonUI(UI):
         color:        Color,
         rect:         Rect,
         z:            int,
-        align:        tuple[int, int] = (AlignUI.START, AlignUI.CENTER),
-        _width:       int             = 0,
-        surface:      Surface|None    = None,
+        surfaces:     list[UI]|None           = None, # DEAR GOD DONT MODIFY THE SURFACES PARAM
+        align:        tuple[AlignUI, AlignUI] = (AlignUI.START, AlignUI.CENTER),
+        _width:       float                   = 0,
     ):
+        if surfaces is None:
+            surfaces = []
         self.outlineColor: Color               = outlineColor
         self.onClick:  Callable[[World], None] = onClick
         self.maxWidth: int                     = maxWidth
-        self.surface:  Surface|None            = surface
+        self.surfaces: list[UI]                = surfaces
         self.radius:   BorderRadius            = radius
         self.color:    Color                   = color
         self.rect:     Rect                    = rect
         self.z:        int                     = z
-        self.align:    tuple[int, int]         = align
-        self._width:   int                     = _width
+        self.align:    tuple[AlignUI, AlignUI] = align
+        self._width:   float                   = _width
 
         self.update()
 
     def update(self):
-        if self.surface is not None:
-            match self.align[0]:
+        for surface in self.surfaces:
+
+            match surface.align[0]:
                 case AlignUI.START:
-                    self.surface.rect.left    = self.rect.left
+                    surface.rect.left    = self.rect.left
                 case AlignUI.CENTER:
-                    self.surface.rect.centerx = self.rect.centerx
+                    surface.rect.centerx = self.rect.centerx
                 case AlignUI.END:
-                    self.surface.rect.right   = self.rect.right
-            match self.align[1]:
+                    surface.rect.right   = self.rect.right
+            match surface.align[1]:
                 case AlignUI.START:
-                    self.surface.rect.top     = self.rect.top
+                    surface.rect.top     = self.rect.top
                 case AlignUI.CENTER:
-                    self.surface.rect.centery = self.rect.centery
+                    surface.rect.centery = self.rect.centery
                 case AlignUI.END:
-                    self.surface.rect.bottom  = self.rect.bottom
+                    surface.rect.bottom  = self.rect.bottom
 
             # self.surface.rect.x = self.rect.x + ((self.rect.w - self.surface.rect.w) >> 1)
             # self.surface.rect.y = self.rect.y + ((self.rect.h - self.surface.rect.h) >> 1)
@@ -83,8 +84,8 @@ class ButtonUI(UI):
             border_bottom_right_radius = self.radius.lowerRight
         )
 
-        if self.surface is not None:
-            self.surface.draw(screen)
+        for surface in self.surfaces:
+            surface.draw(screen)
 
         _width = int(self._width)
         if _width:
@@ -114,7 +115,6 @@ class ButtonUI(UI):
     # def onClick(self, world: World):
     #     print(world.mouse.get_pressed())
 
-@dataclass
 class BoxUI(UI):
     outlineColor : Color
     direction    : DirectionUI
@@ -126,7 +126,7 @@ class BoxUI(UI):
     rect         : Rect
     z            : int
 
-    _width:    int = field(default=0)
+    _width       : float = 0
 
     def __init__(
         self,

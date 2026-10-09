@@ -5,7 +5,6 @@ from levels import *
 
 def main() -> None:
     run = True
-    state_dirty = True
     show_hitboxes = False
     entityIDs = [ i for i, x in enumerate(world.levels[world.level]) ]
     transparentScreen = pygame.Surface(
@@ -31,20 +30,33 @@ def main() -> None:
                         case pygame.K_TAB:
                             # world.initialTicks.inventory = world.tick
                             world.showInventory = not world.showInventory
+                            world.animator.extend(
+                                [
+                                    UIanimation(
+                                        world.overlays.overlays["inventory"],
+                                        ["rect", "y"],
+                                        (20 if world.showInventory else -720)
+                                    ),
+                                    UIanimation(
+                                        world.overlays.overlays["stats"],
+                                        ["rect", "y"],
+                                        (20 if world.showInventory else -720)
+                                    )
+                                ]
+                            )
                 case pygame.MOUSEBUTTONDOWN:
                     world.clicked = True
 
         for id in entityIDs:
             entity = world.levels[world.level][id]
-            if state_dirty:
-                entityIDs.sort(key = lambda x: world.levels[world.level][x].movement.position.y)
-                position = entity.movement.position
-                if hasattr(entity.collision, "rect"):
-                    entity.collision.rect.center = position
-                sprite_pos = entity.movement.onMove(world)
+            entityIDs.sort(key = lambda x: world.levels[world.level][x].movement.position.y)
+            position = entity.movement.position
+            if hasattr(entity.collision, "rect"):
+                entity.collision.rect.center = position
+            sprite_pos = entity.movement.onMove(world)
 
-                if entity.collision.onCollide(world.playerData.interactionPoint) == CollisionType.INTERACT:
-                    entity.interact.onInteract(world)
+            if entity.collision.onCollide(world.playerData.interactionPoint) == CollisionType.INTERACT:
+                entity.interact.onInteract(world)
             entity.render.onRender(transparentScreen, position, sprite_pos)
 
             for key in world.overlays.keys:
@@ -52,14 +64,10 @@ def main() -> None:
                 overlay.draw(transparentScreen)
 
                 hovered = overlay.onHover(world)
-                if hovered:
-                    # if any(world.mouse.get_pressed()):
-                    #     world.initialTicks.click = world.tick
-                    # print(world.tick - world.initialTicks.click)
-                    if world.clicked:
-                        world.clicked = False
-                        if hasattr(overlay, "onClick"):
-                            overlay.onClick(world)
+                if hovered and world.clicked:
+                    world.clicked = False
+                    if hasattr(overlay, "onClick"):
+                        overlay.onClick(world)
 
             # print(world.overlays.passive.values())
             # for overlay in world.overlays.passive.values():
@@ -71,11 +79,24 @@ def main() -> None:
         #         world.overlays.overlays["textbox"].rect.y,
         #         440
         #     )
-        world.overlays.overlays["inventory"].rect.y = lerp(
-            world.overlays.overlays["inventory"].rect.y,
-            20 if world.showInventory else -720
-        )
-        world.overlays.overlays["inventory"].update()
+        # run every animation, keep only the ones that haven't finished
+        world.animator = [
+            animation for animation in world.animator
+            if not animation(world)
+        ]
+
+        # world.overlays.overlays["inventory"].rect.y = lerp(
+        #     world.overlays.overlays["inventory"].rect.y,
+        #     20 if world.showInventory else -720
+        # )
+        # world.overlays.overlays["stats"].rect.y = lerp(
+        #     world.overlays.overlays["stats"].rect.y,
+        #     20 if world.showInventory else -720
+        # )
+        # world.overlays.overlays["stats"].update()
+        # world.overlays.overlays["inventory"].update()
+        # world.overlays.overlays["textbox"].update()
+        # print(world.overlays.overlays["inventory"].rect.y,)
 
 
         if show_hitboxes:

@@ -1,18 +1,18 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pygame import Rect, Vector2, image, mask
 
 from consts import CollisionType
-from interfaces import Collision
+from Interfaces import ICollidable
 
 
 @dataclass(slots=True)
-class Uncollidable(Collision):
+class Uncollidable(ICollidable):
     def onCollide(self, point: Vector2) -> CollisionType:
         return CollisionType.NO_OBSTACLE
 
 @dataclass(slots=True)
-class Obstacle(Collision):
+class Obstacle(ICollidable):
     def __init__(
         self,
         rect: Rect,
@@ -27,9 +27,8 @@ class Obstacle(Collision):
         else:
             return CollisionType.NO_OBSTACLE
 
-# @dataclass(slots=True)
-class Wall(Collision):
-    rect: Rect = Rect((0, 0), (1, 1))
+@dataclass(slots=True)
+class Wall(ICollidable):
     collisionMask = None
     def __init__(
         self,
@@ -40,6 +39,7 @@ class Wall(Collision):
         self.collisionMask = mask.from_surface(
             image.load(f"./rooms/{room}/wall.png").convert_alpha()
         )
+        self.rect = Rect()
 
     def onCollide(self, point: Vector2):
         return self.collideReturn if self.collisionMask.get_at(point - self.rect.topleft) else CollisionType.NO_OBSTACLE

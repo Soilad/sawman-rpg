@@ -2,15 +2,15 @@ from dataclasses import dataclass
 
 from pygame import Color, Rect, Surface, Vector2, draw
 
-from interfaces import UI
+from consts import AlignUI
+from Interfaces import UI
 
 
-@dataclass(slots=True)
 class RectOverlay(UI):
     radius: int
     color:  Color
-    rect:   Rect
-    z:      int
+    # rect:   Rect
+
 
     def draw(self, screen):
         draw.rect(
@@ -20,24 +20,21 @@ class RectOverlay(UI):
             border_radius=self.radius,
         )
 
-@dataclass(slots=True)
 class SurfaceOverlay(UI):
     surface: Surface
-    rect:    Rect
-    z:       int
-    # position:  Vector2 # TODO: change this to rect
-
     def __init__(
         self,
         position: Vector2,
         surface:  Surface,
         z: int,
+        align:  tuple[AlignUI, AlignUI] = (AlignUI.START, AlignUI.START)
     ):
         self.surface  = surface
         # print(position)
         # print(surface.get_size())
         self.rect     = Rect(position, surface.get_size())
         self.z        = z
+        self.align    = align
 
 
     def draw(self, screen):
