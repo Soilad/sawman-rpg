@@ -1,5 +1,4 @@
 import random
-from collections.abc import Callable
 from textwrap import wrap
 from typing import TYPE_CHECKING, Any
 
@@ -12,14 +11,16 @@ from pygame import (
     Vector2,
     draw,
     font,
+    math,
     transform,
 )
 
 from consts import FONT_ALIASED, font_medium
-from structs import World
+from Interfaces import UI
 
 if TYPE_CHECKING:
-    from components.overlay import SurfaceOverlay
+    from components.ui import SurfaceOverlay
+    from structs import World
 
 
 @jit
@@ -166,7 +167,7 @@ def set_dialog(
     The full text is wrapped up front so words don't jump lines while typing.
     """
     # imported here to avoid a cycle: components -> interfaces -> func
-    from components.overlay import SurfaceOverlay
+    from components.ui import SurfaceOverlay
 
     lines       = wrap(text, width=width)
     line_height = font.get_linesize()
@@ -174,7 +175,7 @@ def set_dialog(
     def line_overlay(index: int, part: str) -> SurfaceOverlay:
         return SurfaceOverlay(
             surface  = font.render(part, FONT_ALIASED, (255, 255, 255,)),
-            position = Vector2(position) + Vector2(0, index * line_height),
+            position = position + Vector2(0, index * line_height),
             z        = 6,
         )
 
@@ -188,42 +189,64 @@ def set_dialog(
     return frames
 
 def lerp(initial, final, rate=4):
-    return (
-        (
-            (rate - 1)*initial
-            + final
-        ) / rate
-    )
+    return ((rate - 1)*initial + final) / rate
 
-
-def UIanimation(
-    a_object: Any,
-    a_attribute: list[str],
-    a_final,
-    rate: int = 4,
-) -> Callable[[World], bool]:
-    # walk ["a", "b", "c"] down to a_object.a.b, which owns "c"
+def objectAnimation(
+        a_world: World,
+        a_object: UI,
+        a_attribute: list[str],
+        a_final: Any,
+        a_rate: int = 64
+):
     *path, attribute = a_attribute
     _object = a_object
+    for name in path:
+        _object = getattr(_object, name)
+    
+    position    = float(getattr(_object, attribute))
+    initial_tick = a_world.tick
+    def animation(world: World) -> bool:
+        nonlocal position
+        position = math.lerp(position, a_final, (world.tick - initial_tick) / a_rate)
+        if abs(a_final - position) <= 1:
+            position = a_final
+        setattr(_object, attribute, position)
+        a_object.update()
+        return position == a_final
+
+    a_world.animator[a_object.id.int+hash(attribute)] = animation
+
+def UIanimation(
+    a_world: World, # questionable
+    a_object: str,
+    a_attribute: list[str],
+    a_final: Any,
+    a_rate: int = 64
+) -> None:
+    # walk ["a", "b", "c"] down to a_object.a.b, which owns "c"
+    *path, attribute = a_attribute
+    _object = a_world.ui.overlays[a_object]
     for name in path:
         _object = getattr(_object, name)
 
     # keep our own float copy instead of re-reading the attribute each frame:
     # Rect fields truncate to int, which throws away sub-pixel progress and
     # stalls the animation a few px short of a_final
-    position = float(getattr(_object, attribute))
+    position    = float(getattr(_object, attribute))
+    initial_tick = a_world.tick
 
     def animation(world: World) -> bool:
         nonlocal position
-        position = lerp(position, a_final, rate)
-        if abs(a_final - position) < 0.5:
+        position = math.lerp(position, a_final, (world.tick - initial_tick) / a_rate)
+        if abs(a_final - position) <= 1:
             position = a_final
         setattr(_object, attribute, position)
-        a_object.update()
+        a_world.ui.overlays[a_object].update()
         return position == a_final
 
     animation.target = (_object, attribute)  # pyright: ignore[reportFunctionMemberAccess]
-    return animation
+    # return animation
+    a_world.animator[a_world.ui.overlays[a_object].id.int+hash(attribute)] = animation
 
 
 

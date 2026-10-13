@@ -1,75 +1,62 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+from uuid import UUID, uuid1
 
 from pygame import Rect, Vector2
 
-from consts import AlignUI, Signal
+from consts import AlignUI, CollisionType, Signal
 
 if TYPE_CHECKING:
     from pygame import Surface
 
-    from consts import CollisionType
     from structs import World
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class IMovable(ABC):
     position: Vector2 = field(default_factory=Vector2)
 
     @abstractmethod
     def onMove(self, world) -> tuple[int, int]:
-        """
-        Handle movement in the specified direction.
-        """
-        raise NotImplementedError("onMove method must be implemented by subclasses.")
+        raise NotImplementedError(
+            "onMove method must be implemented by subclasses.")
 
-@dataclass
+
+@dataclass(slots=True, kw_only=True)
 class IInteractable(ABC):
+
     @abstractmethod
     def onInteract(self, world):
-        """
-        Handle interaction with the object.
-        
-        :param screen: The game screen where the interaction occurs.
-        :param surface: The surface to render the interaction on.
-        :param font_medium: The font used for rendering text.
-        :param player_vars: Player-related variables and states.
-        :param Inventory: The player's inventory.
-        :param b_togg: A toggle for interaction state.
-        :param text_scroll: The current scroll position of the text.
-        :param y_position: The vertical position for rendering text.
-        """
-        raise NotImplementedError("onInteract method must be implemented by subclasses.")
+        raise NotImplementedError(
+            "onInteract method must be implemented by subclasses.")
 
-@dataclass
+
+@dataclass(slots=True, kw_only=True)
 class IRenderable(ABC):
+    blitOffset: Vector2 = field(default_factory=Vector2)
+
     @abstractmethod
     def onRender(self, screen, position, sprite_pos) -> None:
-        """
-        Handle rendering of the object.
-        
-        :param screen: The game screen where the object is rendered.
-        :param position: The position on the screen where the object should be drawn.
-        """
-        raise NotImplementedError("onRender method must be implemented by subclasses.")
+        raise NotImplementedError(
+            "onRender method must be implemented by subclasses.")
 
-@dataclass
+
+@dataclass(slots=True, kw_only=True)
 class ICommandable(ABC):
-    emitted = False
-    signal  = Signal.OK
+    emitted: bool = field(default=False)
+    signal: Signal = field(default=Signal.OK)
+
     def emit(self, world: World) -> Signal:
         if self.emitted:
             self.refresh(world)
             return Signal.OK
-        self.init(world)
-        self.emitted = True
+        self.emitted = self.init(world)
         return self.signal
 
-
     @abstractmethod
-    def init(self, world: World) -> None:
-        pass
+    def init(self, world: World) -> bool:
+        return True
 
     @abstractmethod
     def refresh(self, world: World) -> None:
@@ -78,18 +65,24 @@ class ICommandable(ABC):
     def reset(self) -> None:
         self.emitted = False
 
-@dataclass
+
+@dataclass(slots=True, kw_only=True)
 class ICollidable(ABC):
-    align: tuple[AlignUI, AlignUI]
-    rect:  Rect = field(default_factory=Rect)
+    collideReturn: CollisionType
+    rect: Rect = field(default_factory=Rect)
+
     @abstractmethod
     def onCollide(self, point: Vector2) -> CollisionType:
         pass
 
+
+@dataclass(slots=True, kw_only=True)
 class UI(ABC):
-    z    : int                     = 0
-    rect : Rect                    = Rect()
+    rect: Rect = field(default_factory=Rect)
+    children: list[UI] = field(default_factory=list)
     align: tuple[AlignUI, AlignUI] = (AlignUI.START, AlignUI.START)
+    id: UUID = field(default_factory=uuid1)
+    z: int = 0
 
     @abstractmethod
     def draw(self, screen: Surface) -> None:

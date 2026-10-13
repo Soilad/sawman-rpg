@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "isort>=9.0.2",
     "numba>=0.67.0",
     "pygame-ce>=2.5.8",
     "pytz>=2026.3.post1",

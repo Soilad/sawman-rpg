@@ -9,28 +9,32 @@ from Interfaces import ICommandable, IInteractable
 if TYPE_CHECKING:
     from structs import World
 
+
 @dataclass(slots=True)
 class NoInteract(IInteractable):
+
     def onInteract(self, world: World):
         pass
+
 
 @dataclass(slots=True)
 class Commands(IInteractable):
     commands: list[ICommandable]
-    def __init__(self, commands: list[ICommandable]):
-        self.commands = commands
-        self.len      = len(self.commands)
+    len: int
+
+    def __init__(self, *commands: ICommandable):
+        self.commands = [*commands]
+        self.len = len(self.commands)
         # self.len, self.rendered_dialog = set_dialog(self.dialog, font_medium, FONT_ALIASED)
 
     def onInteract(self, world) -> None:
-        if  world.commandIndex < self.len:
+        if world.commandIndex < self.len:
             command = self.commands[world.commandIndex]
-            status  = command.emit(world)
-            # print(status)
+            status = command.emit(world)
             match status:
                 case Signal.CLEAR_COMMANDS:
                     self.commands = self.commands[world.commandIndex::]
-                    self.len      = len(self.commands)
+                    self.len = len(self.commands)
         else:
             world.commandIndex = 0
             for command in self.commands:
@@ -38,23 +42,19 @@ class Commands(IInteractable):
 
 
 class Shop:
+
     def __init__(self, sprite, dialog, font_small, FONT_ALIASED):
-        self.shopui  = pygame.image.load("ui/shop.png").convert_alpha()
+        self.shopui = pygame.image.load("ui/shop.png").convert_alpha()
         self.shopman = pygame.image.load(shopman).convert()
-        self.menu    = []
+        self.menu = []
         for index in range(len(menu)):
             item, price = menu.items()[index]
             self.menu.append(
-                Button(
-                    f"{item[0]}: ௹{price}",
-                    (750, 50 + (60 * index) + y_position),
-                    (100, 10),
-                    10
-                )
-            )
+                Button(f"{item[0]}: ௹{price}",
+                       (750, 50 + (60 * index) + y_position), (100, 10), 10))
 
-
-    def onInteract(self, screen, surface, font_medium, world, Inventory, b_togg, text_scroll, y_position):
+    def onInteract(self, screen, surface, font_medium, world, Inventory,
+                   b_togg, text_scroll, y_position):
         screen.blit(self.shopman, (0, 0))
         screen.blit(self.shopui, (0, y_position * 1.2))
         item_index = 0
@@ -67,13 +67,12 @@ class Shop:
             pygame.mouse.set_visible(True)
             mouses = pygame.mouse.get_pressed()
             for k, v in self.menu.items():
-                itemtext = font_medium.render(f"{k[0]}: ௹{v}", FONT_ALIASED, (255, 255, 255))
-                if (
-                    itemtext.get_rect(topleft=(750, 50 + (60 * item_index))).collidepoint(
-                        mpos
-                    )
-                    and b_togg
-                ):
+                itemtext = font_medium.render(f"{k[0]}: ௹{v}", FONT_ALIASED,
+                                              (255, 255, 255))
+                if (itemtext.get_rect(
+                        topleft=(750, 50 +
+                                 (60 * item_index))).collidepoint(mpos)
+                        and b_togg):
                     itemtext = glow(
                         font_medium.render(
                             f"{k[0]}: ௹{v} ({Inventory.inventory_dict.get(k, 0)})",
@@ -93,6 +92,6 @@ class Shop:
                                 world.money += v * 0.9
                     b_togg = False
 
-                screen.blit(itemtext, (750, 50 + (60 * item_index) + y_position))
+                screen.blit(itemtext,
+                            (750, 50 + (60 * item_index) + y_position))
                 item_index += 1
-

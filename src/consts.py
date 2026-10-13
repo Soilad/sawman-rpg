@@ -1,37 +1,42 @@
 from enum import Enum, Flag, auto
 
-from pygame import font
+from pygame import font, Color
 
 
 class CollisionType(Flag):
     NO_OBSTACLE = auto()
-    VOLUNTARY   = auto()
-    OBSTACLE    = auto()
-    INTERACT    = auto()
+    VOLUNTARY = auto()
+    OBSTACLE = auto()
+    INTERACT = auto()
+
 
 class EntityType(Flag):
-    PLAYER    = auto()
-    ROOM      = auto()
-    ENTITY    = auto()
+    PLAYER = auto()
+    ROOM = auto()
+    ENTITY = auto()
+
 
 class Signal(Enum):
     CLEAR_COMMANDS = auto()
-    OK             = auto()
+    OK = auto()
+
 
 class DirectionUI(Flag):
     HORIZONTAL = auto()
-    VERTICAL   = auto()
+    VERTICAL = auto()
+
 
 class AlignUI(Flag):
-    START  = auto()
+    START = auto()
     CENTER = auto()
-    END    = auto()
+    END = auto()
+
 
 font.init()
 font_medium = font.Font("./ui/Soilad.ttf", 48)
 FONT_ALIASED = True
-X_OFFSETS = {
-    "sawman":    200,
-    "zweistein": 850
-}
+X_OFFSETS = {"sawman": 200, "zweistein": 850}
 TICKS_PER_CHAR = 3
+COLOR_PRIMARY = Color(255, 255, 255)
+COLOR_SECONDARY = Color(255, 0, 0, 64)
+COLOR_TERTIARY = Color(0, 0, 0, 64)
